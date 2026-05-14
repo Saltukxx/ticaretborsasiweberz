@@ -1,0 +1,288 @@
+.hmosaic {
+  position: relative;
+  z-index: 2;
+  padding: 14px;
+  border-radius: var(--radius-xl);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.78), rgba(247, 248, 244, 0.55)),
+    radial-gradient(420px 260px at 100% 0%, rgba(47, 165, 90, 0.12), transparent 66%);
+  border: 1px solid rgba(11, 21, 48, 0.12);
+  box-shadow: var(--shadow-2);
+  animation: fadeUp 1.35s 1.3s var(--ease-out) both;
+  overflow: hidden;
+  max-width: 620px;
+  margin-left: auto;
+}
+
+.hmosaic::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 96%, rgba(37, 138, 74, 0.07)),
+    repeating-linear-gradient(0deg, rgba(11, 21, 48, 0.025) 0 1px, transparent 1px 46px);
+  mix-blend-mode: multiply;
+}
+
+.hmosaic__topline {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 14px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-green-700);
+}
+
+.hmosaic__live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-green-500);
+  box-shadow: 0 0 14px rgba(47, 165, 90, 0.75);
+  animation: pulseDot 1.8s var(--ease-out) infinite;
+}
+
+.hmosaic__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(126px, auto);
+  gap: 12px;
+}
+
+.hmosaic__cell {
+  position: relative;
+  min-height: 126px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(160deg, rgba(7, 17, 46, 0.96), rgba(13, 33, 76, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform-style: preserve-3d;
+  transition: transform 0.55s var(--ease-out), box-shadow 0.55s var(--ease-out), border-color 0.4s;
+}
+
+.hmosaic__cell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(260px 160px at 100% 0%, rgba(127, 220, 160, 0.12), transparent 68%);
+}
+
+.hmosaic__cell::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--c-green-400), transparent);
+  opacity: 0.8;
+}
+
+.hmosaic__cell:hover {
+  transform: translateY(-3px);
+  border-color: rgba(127, 220, 160, 0.32);
+  box-shadow: 0 24px 52px -34px rgba(7, 17, 46, 0.7);
+}
+
+.hmosaic__cell--wide {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+
+.hmosaic__cell--gold::after {
+  background: linear-gradient(90deg, var(--c-gold-400), transparent);
+}
+
+.hmosaic__cell--blue::after {
+  background: linear-gradient(90deg, var(--c-blue-300), transparent);
+}
+
+.hmosaic__cell--red::after {
+  background: linear-gradient(90deg, var(--c-red-400), transparent);
+}
+
+.hmosaic__cell-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 18px 16px;
+  animation: mosaicFlip 0.9s var(--ease-out) both;
+  transform-origin: center top;
+}
+
+.hmosaic__cell--wide .hmosaic__cell-inner {
+  padding: 22px;
+}
+
+.hmosaic__cell-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.hmosaic__eyebrow,
+.hmosaic__detail {
+  font-size: 8px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(232, 237, 247, 0.58);
+}
+
+.hmosaic__change {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--c-green-300);
+  padding: 4px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(127, 220, 160, 0.22);
+  background: rgba(127, 220, 160, 0.08);
+}
+
+.hmosaic__cell--red .hmosaic__change {
+  color: var(--c-red-400);
+  border-color: rgba(239, 107, 107, 0.24);
+  background: rgba(239, 107, 107, 0.08);
+}
+
+.hmosaic__cell--gold .hmosaic__change {
+  color: var(--c-gold-200);
+  border-color: rgba(200, 181, 108, 0.28);
+  background: rgba(200, 181, 108, 0.08);
+}
+
+.hmosaic__cell-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.hmosaic__title {
+  font-family: var(--f-display);
+  font-size: clamp(1.05rem, 1.25vw, 1.24rem);
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.hmosaic__value {
+  font-family: var(--f-display);
+  font-size: clamp(1.55rem, 2vw, 2.05rem);
+  font-weight: 500;
+  line-height: 1;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.hmosaic__cell--wide .hmosaic__value {
+  font-size: clamp(2.25rem, 3.4vw, 3.1rem);
+}
+
+.hmosaic__spark {
+  height: 68px;
+  margin-top: auto;
+}
+
+.hmosaic__spark .sparkline {
+  height: 68px;
+  width: 100%;
+}
+
+.hmosaic__compass {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 181, 108, 0.24);
+}
+
+.hmosaic__compass span,
+.hmosaic__compass i {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: block;
+  transform: translate(-50%, -50%);
+}
+
+.hmosaic__compass span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c-gold-400);
+  box-shadow: 0 0 14px rgba(200, 181, 108, 0.65);
+}
+
+.hmosaic__compass i {
+  width: 1px;
+  height: 28px;
+  background: linear-gradient(180deg, var(--c-gold-400), transparent);
+  transform: translate(-50%, -50%) rotate(28deg);
+  transform-origin: center;
+  animation: compassSweep 14s linear infinite;
+}
+
+@keyframes mosaicFlip {
+  0% {
+    opacity: 0;
+    transform: rotateX(34deg) translateY(-8px);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateX(0deg) translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes compassSweep {
+  to {
+    transform: translate(-50%, -50%) rotate(388deg);
+  }
+}
+
+@media (max-width: 1280px) {
+  .hmosaic {
+    max-width: none;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .hmosaic {
+    padding: 10px;
+  }
+
+  .hmosaic__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hmosaic__cell--wide {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hmosaic__cell-inner,
+  .hmosaic__compass i,
+  .hmosaic__live-dot {
+    animation: none !important;
+  }
+
+  .hmosaic__cell:hover {
+    transform: none;
+  }
+}

@@ -1,0 +1,87 @@
+.reports__em { font-style: italic; color: var(--c-green-600); font-weight: 500; }
+.reports__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.report {
+  position: relative;
+  padding: 26px 26px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 340px;
+  overflow: hidden;
+}
+.report__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  letter-spacing: 0.32em;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+}
+.report__type {
+  color: var(--c-green-700);
+  border: 1px solid rgba(37,138,74,0.28);
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.report__name {
+  font-family: var(--f-display);
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--c-navy-900);
+  margin-top: 4px;
+}
+.report__sum {
+  font-size: 0.9rem;
+  color: var(--c-text-dim);
+  flex: 1;
+}
+.report__chart {
+  margin-top: 6px;
+  margin-bottom: 6px;
+  border-top: 1px dashed rgba(11,21,48,0.1);
+  border-bottom: 1px dashed rgba(11,21,48,0.1);
+  padding: 10px 0;
+}
+.report__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.report__foot > .mono {
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  color: var(--c-text-muted);
+  text-transform: uppercase;
+}
+.report__actions { display: inline-flex; gap: 10px; align-items: center; }
+.report__dl {
+  padding: 8px 14px;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.report__sheen {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(400px 200px at 100% 0%, rgba(47,165,90,0.12), transparent 60%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s var(--ease-out);
+}
+.report:hover .report__sheen { opacity: 1; }
+
+.reports__all { display: flex; justify-content: center; margin-top: 36px; }
+
+@media (max-width: 1000px) {
+  .reports__grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .reports__grid { grid-template-columns: 1fr; }
+}

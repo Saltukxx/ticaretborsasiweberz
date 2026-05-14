@@ -1,0 +1,318 @@
+.president-band {
+  overflow: hidden;
+  padding: clamp(58px, 7vw, 104px) 0;
+  background:
+    radial-gradient(720px 420px at 86% 4%, rgba(47, 165, 90, 0.1), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(247, 248, 244, 0.95));
+}
+
+.president-band__shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  align-items: center;
+  gap: clamp(34px, 5vw, 76px);
+}
+
+.president-band__shell::before {
+  content: "";
+  position: absolute;
+  inset: 8% 4% 4% 18%;
+  border: 1px solid rgba(11, 21, 48, 0.08);
+  border-radius: 42px;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.2)),
+    radial-gradient(circle at 10% 20%, rgba(200, 181, 108, 0.14), transparent 34%);
+  pointer-events: none;
+}
+
+.president-band__visual {
+  position: relative;
+  z-index: 1;
+  min-height: 520px;
+}
+
+.president-band__portrait {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  width: min(100%, 455px);
+  aspect-ratio: 0.78;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  background: linear-gradient(145deg, #ffffff, #eef2ec);
+  box-shadow:
+    0 44px 86px -52px rgba(7, 17, 46, 0.62),
+    0 1px 0 rgba(255, 255, 255, 0.88) inset;
+  transition: transform 0.8s var(--ease-out), box-shadow 0.8s var(--ease-out);
+}
+
+.president-band__portrait::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 52%, rgba(5, 13, 36, 0.78)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.18), transparent 38%);
+  pointer-events: none;
+}
+
+.president-band__portrait-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  transform: scale(1.02);
+  transition: transform 1.2s var(--ease-out);
+}
+
+.president-band__portrait figcaption {
+  position: absolute;
+  z-index: 2;
+  left: 92px;
+  right: 22px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  color: #fff;
+}
+
+.president-band__portrait figcaption span {
+  font-family: var(--f-display);
+  font-size: clamp(1.25rem, 2vw, 1.7rem);
+  line-height: 1.08;
+}
+
+.president-band__portrait figcaption strong {
+  width: fit-content;
+  font-family: var(--f-mono);
+  font-size: 10px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.president-band__visual:hover .president-band__portrait {
+  transform: translateY(-6px);
+  box-shadow:
+    0 54px 96px -56px rgba(7, 17, 46, 0.72),
+    0 1px 0 rgba(255, 255, 255, 0.9) inset;
+}
+
+.president-band__visual:hover .president-band__portrait-photo {
+  transform: scale(1.06);
+}
+
+.president-band__logo-badge {
+  position: absolute;
+  z-index: 3;
+  left: 18px;
+  bottom: 18px;
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  padding: 7px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 16px 34px -20px rgba(7, 17, 46, 0.8),
+    inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(12px);
+}
+
+.president-band__logo-badge img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.president-band__silhouettes {
+  position: absolute;
+  z-index: 0;
+  right: -40px;
+  bottom: 8px;
+  width: min(62vw, 420px);
+  color: rgba(11, 21, 48, 0.075);
+  animation: presidentSilhouetteDrift 8s var(--ease-soft) infinite;
+}
+
+.president-band__silhouettes svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.president-band__content {
+  position: relative;
+  z-index: 1;
+  max-width: 730px;
+  padding: clamp(28px, 5vw, 54px);
+  border-left: 1px solid rgba(11, 21, 48, 0.1);
+}
+
+.president-band__content h2 {
+  max-width: 680px;
+  margin: 16px 0 24px;
+  font-size: clamp(2.1rem, 4.8vw, 4.8rem);
+  line-height: 0.98;
+  color: var(--c-navy-900);
+}
+
+.president-band__content blockquote {
+  position: relative;
+  margin: 0;
+  max-width: 640px;
+  color: var(--c-text-dim);
+  font-size: clamp(1rem, 1.45vw, 1.18rem);
+  line-height: 1.82;
+}
+
+.president-band__content blockquote::before {
+  content: "“";
+  position: absolute;
+  left: -42px;
+  top: -30px;
+  font-family: var(--f-display);
+  font-size: 7rem;
+  line-height: 1;
+  color: rgba(37, 138, 74, 0.16);
+}
+
+.president-band__content blockquote p {
+  margin: 0 0 16px;
+}
+
+.president-band__content blockquote p:last-child {
+  margin-bottom: 0;
+}
+
+.president-band__signature {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 34px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(11, 21, 48, 0.1);
+  flex-wrap: wrap;
+}
+
+.president-band__signature div {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-left: 64px;
+}
+
+.president-band__signature div::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 46px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--c-gold-500), var(--c-green-500));
+}
+
+.president-band__signature strong {
+  font-family: var(--f-display);
+  font-size: 1.2rem;
+  color: var(--c-navy-900);
+}
+
+.president-band__signature span {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+}
+
+@keyframes presidentSilhouetteDrift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(-10px, -8px, 0);
+  }
+}
+
+@media (max-width: 1040px) {
+  .president-band__shell {
+    grid-template-columns: 1fr;
+  }
+
+  .president-band__shell::before {
+    inset: 4% 0 0;
+  }
+
+  .president-band__visual {
+    min-height: auto;
+  }
+
+  .president-band__portrait {
+    width: min(100%, 520px);
+    margin-inline: auto;
+    aspect-ratio: 0.86;
+  }
+
+  .president-band__content {
+    max-width: none;
+    padding-inline: 0;
+    border-left: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .president-band {
+    padding: 52px 0 68px;
+  }
+
+  .president-band__shell {
+    gap: 28px;
+  }
+
+  .president-band__portrait {
+    border-radius: 24px;
+    transform: none;
+  }
+
+  .president-band__logo-badge {
+    width: 50px;
+    height: 50px;
+    border-radius: 15px;
+    left: 14px;
+    bottom: 14px;
+  }
+
+  .president-band__portrait figcaption {
+    left: 78px;
+    bottom: 16px;
+  }
+
+  .president-band__content blockquote::before {
+    left: -14px;
+    top: -34px;
+    font-size: 5rem;
+  }
+
+  .president-band__signature {
+    align-items: flex-start;
+  }
+
+  .president-band__signature .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .president-band__silhouettes {
+    animation: none;
+  }
+}

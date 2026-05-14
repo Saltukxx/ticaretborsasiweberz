@@ -1,0 +1,105 @@
+.ticker {
+  display: flex;
+  align-items: stretch;
+  border-top: 1px solid rgba(11, 21, 48, 0.08);
+  border-bottom: 1px solid rgba(11, 21, 48, 0.08);
+  background: linear-gradient(
+    90deg,
+    #ffffff,
+    #f2f7f1,
+    #ffffff
+  );
+  position: relative;
+  overflow: hidden;
+}
+.ticker::before,
+.ticker::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 120px;
+  z-index: 2;
+  pointer-events: none;
+}
+.ticker::before { left: 230px; background: linear-gradient(90deg, #fff, transparent); }
+.ticker::after { right: 240px; background: linear-gradient(270deg, #fff, transparent); }
+
+.ticker__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 24px;
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--c-green-700);
+  border-right: 1px solid rgba(11, 21, 48, 0.1);
+  background: rgba(37, 138, 74, 0.08);
+  min-width: 230px;
+}
+.ticker__pulse {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-red-400);
+  box-shadow: 0 0 14px var(--c-red-400);
+  animation: pulseDot 1.4s var(--ease-out) infinite;
+}
+.ticker__viewport {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.ticker__track {
+  display: flex;
+  gap: 56px;
+  padding: 14px 40px;
+  white-space: nowrap;
+  animation: scrollX 60s linear infinite;
+}
+.ticker__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 13px;
+}
+.ticker__code {
+  color: var(--c-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+.ticker__value {
+  color: var(--c-navy-900);
+  font-size: 15px;
+  font-weight: 500;
+}
+.ticker__chg {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+.ticker__chg.is-up { color: var(--c-green-300); background: rgba(47, 165, 90, 0.08); }
+.ticker__chg.is-down { color: var(--c-red-400); background: rgba(220, 74, 74, 0.08); }
+
+.ticker__time {
+  padding: 0 24px;
+  display: inline-flex;
+  align-items: center;
+  border-left: 1px solid rgba(11, 21, 48, 0.1);
+  background: rgba(11, 21, 48, 0.04);
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--c-text-muted);
+  min-width: 240px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .ticker__label { min-width: 160px; padding: 0 14px; font-size: 10px; }
+  .ticker__time { display: none; }
+  .ticker::after { display: none; }
+}
