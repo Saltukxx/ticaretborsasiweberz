@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import LogoIntro from "./components/LogoIntro";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import HomePage from "./pages/HomePage";
@@ -17,30 +16,17 @@ import ContactPage from "./pages/ContactPage";
 import MarketDataPage from "./pages/MarketDataPage";
 
 export default function App() {
-  const [introDone, setIntroDone] = useState(() => {
-    if (typeof window === "undefined") return false;
-
-    const forceIntro = new URLSearchParams(window.location.search).get("intro") === "1";
-    if (forceIntro) return false;
-
-    return localStorage.getItem("etb_intro_seen") === "1";
-  });
   const location = useLocation();
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
   }, [location.pathname]);
 
-  useEffect(() => {
-    if (introDone) localStorage.setItem("etb_intro_seen", "1");
-  }, [introDone]);
-
   return (
     <>
-      {!introDone && <LogoIntro onDone={() => setIntroDone(true)} />}
       <div className="grain" aria-hidden />
       <Header />
-      <main className={introDone ? "site-enter" : "site-hidden"}>
+      <main className="site-enter">
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/kurumsal" element={<CorporatePage />} />

@@ -368,6 +368,23 @@ p {
 }
 
 /* ----------------------------- SAYFA AKIŞI ----------------------------- */
+.site-enter {
+  animation: siteEnter 1.1s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes siteEnter {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
 main {
   position: relative;
   z-index: 1;
