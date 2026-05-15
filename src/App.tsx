@@ -10,6 +10,8 @@ import AnnouncementsPage from "./pages/AnnouncementsPage";
 import CorporatePage from "./pages/CorporatePage";
 import GeographicalIndicationsPage from "./pages/GeographicalIndicationsPage";
 import ReportsPage from "./pages/ReportsPage";
+import ProjectsPage from "./pages/ProjectsPage";
+import EventsPage from "./pages/EventsPage";
 import ServicesPage from "./pages/ServicesPage";
 import ContactPage from "./pages/ContactPage";
 import MarketDataPage from "./pages/MarketDataPage";
@@ -48,6 +50,8 @@ export default function App() {
           <Route path="/haberler" element={<NewsPage />} />
           <Route path="/duyurular" element={<AnnouncementsPage />} />
           <Route path="/raporlar" element={<ReportsPage />} />
+          <Route path="/projeler" element={<ProjectsPage />} />
+          <Route path="/etkinlikler" element={<EventsPage />} />
           <Route path="/hizmetler" element={<ServicesPage />} />
           <Route path="/iletisim" element={<ContactPage />} />
           <Route path="*" element={<HomePage />} />

@@ -50,7 +50,7 @@ export default function HomeHumanStoriesNews() {
           <div>
             <span className="eyebrow">Haberler · Saha ve Bölge</span>
             <h2 id="hnews-title">
-              Borsadan <em>insana dokunan</em> haberler
+              Borsadan haberler
             </h2>
           </div>
           <p>Kurumsal gündemi, toplantıları ve üyelerle temasları veri kalabalığına boğmadan; gerçek fotoğraflar ve güçlü başlıklarla izleyin.</p>

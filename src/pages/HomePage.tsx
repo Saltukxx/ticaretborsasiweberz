@@ -1,4 +1,5 @@
 import Hero from "../components/Hero";
+import EventsPreview from "../components/EventsPreview";
 import HomeHumanStoriesNews from "../components/HomeHumanStoriesNews";
 import HomePresidentBand from "../components/HomePresidentBand";
 import QuickStats from "../components/QuickStats";
@@ -14,6 +15,7 @@ export default function HomePage() {
       <Hero />
       <HomePresidentBand />
       <HomeHumanStoriesNews />
+      <EventsPreview variant="home" />
       <QuickStats />
       <HomePriceSummary />
       <HomeServicesShortcuts />
