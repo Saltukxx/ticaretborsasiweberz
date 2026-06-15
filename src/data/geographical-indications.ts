@@ -1,3 +1,4 @@
+/** Seed source for backend/scripts/seedGeoIndications.ts — not used at runtime (public site uses API). */
 export type GeoCategory =
   | "Süt Ürünleri"
   | "Yemekler"

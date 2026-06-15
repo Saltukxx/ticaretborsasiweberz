@@ -1,0 +1,27 @@
+{
+  "systemInstruction": {
+    "parts": [
+      {
+        "text": "You are a cultural narrator for Erzurum Ticaret Borsası. Reply in Turkish. Stay on topic: Kadayıf Dolması recipe, Erzurum, geographical indication. No emojis."
+      }
+    ]
+  },
+  "contents": [
+    {
+      "role": "user",
+      "parts": [{ "text": "Merhaba — malzemeler neler?" }]
+    }
+  ],
+  "generationConfig": {
+    "temperature": 0.6,
+    "maxOutputTokens": 1024,
+    "topP": 0.95,
+    "topK": 40
+  },
+  "safetySettings": [
+    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" },
+    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE" }
+  ]
+}

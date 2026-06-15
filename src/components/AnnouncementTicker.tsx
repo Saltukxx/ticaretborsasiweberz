@@ -1,8 +1,16 @@
-import { announcements } from "../data/market";
+import { useAnnouncementsTicker } from "../hooks/usePublicApi";
 import "./AnnouncementTicker.css";
 
 export default function AnnouncementTicker() {
-  const list = [...announcements, ...announcements];
+  const { data, isLoading, isError } = useAnnouncementsTicker();
+
+  // Fall back to hidden strip on error; show placeholder on loading
+  if (isError || (!isLoading && (!data || data.length === 0))) return null;
+
+  const items = data ?? [];
+  // Duplicate for seamless scroll animation
+  const list = items.length > 0 ? [...items, ...items] : [];
+
   return (
     <section className="ann">
       <div className="container ann__inner">
@@ -12,13 +20,22 @@ export default function AnnouncementTicker() {
         </div>
         <div className="ann__viewport">
           <div className="ann__track">
-            {list.map((t, i) => (
-              <span className="ann__item" key={i}>
-                <span className="ann__marker mono">{String((i % announcements.length) + 1).padStart(2, "0")}</span>
-                {t}
-                <span className="ann__sep">◆</span>
+            {isLoading ? (
+              <span className="ann__item">
+                <span className="ann__marker mono">…</span>
+                Duyurular yükleniyor
               </span>
-            ))}
+            ) : (
+              list.map((item, i) => (
+                <span className="ann__item" key={`${item.id}-${i}`}>
+                  <span className="ann__marker mono">
+                    {String((i % items.length) + 1).padStart(2, "0")}
+                  </span>
+                  {item.title}
+                  <span className="ann__sep">◆</span>
+                </span>
+              ))
+            )}
           </div>
         </div>
         <a className="ann__cta mono" href="/duyurular">Tüm Duyurular →</a>

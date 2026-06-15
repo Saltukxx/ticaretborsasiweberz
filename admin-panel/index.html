@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ETB Yönetim</title>
+    <script>
+      (function () {
+        var c = globalThis.crypto;
+        if (!c || typeof c.getRandomValues !== "function") return;
+        if (typeof c.randomUUID === "function") return;
+        c.randomUUID = function () {
+          var b = c.getRandomValues(new Uint8Array(16));
+          b[6] = (b[6] & 15) | 64;
+          b[8] = (b[8] & 63) | 128;
+          var h = Array.from(b, function (v) {
+            return v.toString(16).padStart(2, "0");
+          }).join("");
+          return (
+            h.slice(0, 8) +
+            "-" +
+            h.slice(8, 12) +
+            "-" +
+            h.slice(12, 16) +
+            "-" +
+            h.slice(16, 20) +
+            "-" +
+            h.slice(20)
+          );
+        };
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

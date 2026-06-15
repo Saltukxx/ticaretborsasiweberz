@@ -257,6 +257,8 @@
   .hmosaic {
     max-width: none;
     margin-left: 0;
+    margin-inline: auto;
+    width: 100%;
   }
 }
 
@@ -272,6 +274,21 @@
   .hmosaic__cell--wide {
     grid-column: span 1;
     grid-row: span 1;
+  }
+
+  .hmosaic__cell {
+    min-height: 112px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hmosaic__topline {
+    flex-wrap: wrap;
+    letter-spacing: 0.16em;
+  }
+
+  .hmosaic__compass {
+    display: none;
   }
 }
 

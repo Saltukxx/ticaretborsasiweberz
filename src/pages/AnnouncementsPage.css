@@ -34,6 +34,92 @@
   font-size: 0.9rem;
   margin-bottom: 12px;
 }
+
+.announcements__state {
+  opacity: 0.5;
+  padding: 2rem 0;
+}
+
+.announcements__pagination {
+  display: grid;
+  gap: 18px;
+  margin-top: 36px;
+  padding: 22px 24px;
+  border: 1px solid rgba(11, 21, 48, 0.1);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.announcements__pagination-meta {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.announcements__pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.announcements__pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.announcements__pagination-btn,
+.announcements__pagination-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(11, 21, 48, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--c-navy-900);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.announcements__pagination-page {
+  min-width: 40px;
+  padding: 0 12px;
+}
+
+.announcements__pagination-page--active {
+  border-color: rgba(37, 138, 74, 0.45);
+  background: rgba(37, 138, 74, 0.12);
+  color: var(--c-green-700);
+}
+
+.announcements__pagination-btn--disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
 @media (max-width: 900px) {
   .announcements__grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .announcement {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 20px;
+  }
+
+  .announcement__num {
+    letter-spacing: 0.28em;
+  }
 }

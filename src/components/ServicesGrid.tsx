@@ -1,4 +1,4 @@
-import { services } from "../data/market";
+import { usePublicServices } from "../hooks/usePublicApi";
 import { useReveal } from "../hooks/useReveal";
 import "./ServicesGrid.css";
 
@@ -45,6 +45,8 @@ const Icon = ({ name }: { name: string }) => {
 
 export default function ServicesGrid() {
   const ref = useReveal<HTMLDivElement>();
+  const { data: servicesData } = usePublicServices();
+  const services = servicesData ?? [];
   return (
     <section className="services">
       <div className="container">
@@ -68,10 +70,10 @@ export default function ServicesGrid() {
                 {String(i + 1).padStart(2, "0")}
               </span>
               <div className="service__icon" aria-hidden>
-                <Icon name={s.icon} />
+                <Icon name={s.icon ?? ""} />
               </div>
               <h3 className="service__title">{s.title}</h3>
-              <p className="service__desc">{s.desc}</p>
+              <p className="service__desc">{s.description}</p>
               <span className="service__cta mono">
                 Hizmete Git <span>→</span>
               </span>

@@ -1,11 +1,26 @@
 import { Link } from "react-router-dom";
 import { presidentMessage } from "../data/leadership";
+import { usePublicPresident } from "../hooks/usePublicApi";
+import { resolveMediaUrl } from "../lib/resolveMediaUrl";
+import { resolveQuoteLines } from "../lib/resolveQuoteLines";
 import { useReveal } from "../hooks/useReveal";
 import "./HomePresidentBand.css";
 
 export default function HomePresidentBand() {
   const visualRef = useReveal<HTMLDivElement>();
   const contentRef = useReveal<HTMLElement>();
+
+  const { data: leader } = usePublicPresident();
+
+  const eyebrow = leader?.eyebrow ?? presidentMessage.eyebrow;
+  const messageTitle = leader?.messageTitle ?? presidentMessage.title;
+  const quote = resolveQuoteLines(leader?.quoteLines, presidentMessage.quote);
+  const name = leader?.name ?? presidentMessage.name;
+  const role = leader?.title ?? presidentMessage.role;
+  const portraitSrc = leader?.portraitUrl
+    ? resolveMediaUrl(leader.portraitUrl)
+    : presidentMessage.portraitSrc;
+  const portraitAlt = `${name} - ${role}`;
 
   return (
     <section className="president-band" aria-labelledby="president-band-title">
@@ -30,8 +45,8 @@ export default function HomePresidentBand() {
             <figure className="president-band__portrait">
               <img
                 className="president-band__portrait-photo"
-                src={presidentMessage.portraitSrc}
-                alt={presidentMessage.portraitAlt}
+                src={portraitSrc}
+                alt={portraitAlt}
                 loading="lazy"
                 decoding="async"
               />
@@ -39,26 +54,26 @@ export default function HomePresidentBand() {
                 <img src="/erzurum-ticaret-borsasi-logo.png" alt="" loading="lazy" decoding="async" />
               </span>
               <figcaption>
-                <span>{presidentMessage.name}</span>
-                <strong>{presidentMessage.role}</strong>
+                <span>{name}</span>
+                <strong>{role}</strong>
               </figcaption>
             </figure>
           </div>
 
           <article className="president-band__content reveal" ref={contentRef}>
-            <span className="eyebrow">{presidentMessage.eyebrow}</span>
-            <h2 id="president-band-title">{presidentMessage.title}</h2>
+            <span className="eyebrow">{eyebrow}</span>
+            <h2 id="president-band-title">{messageTitle}</h2>
 
             <blockquote>
-              {presidentMessage.quote.map((line) => (
+              {quote.map((line) => (
                 <p key={line}>{line}</p>
               ))}
             </blockquote>
 
             <footer className="president-band__signature">
               <div>
-                <strong>{presidentMessage.name}</strong>
-                <span>{presidentMessage.role}</span>
+                <strong>{name}</strong>
+                <span>{role}</span>
               </div>
               <Link className="btn btn-primary" to="/kurumsal">
                 Kurumsal bilgileri incele

@@ -1,6 +1,6 @@
 import PageHero from "../components/PageHero";
 import PriceBulletinPanel from "../components/PriceBulletinPanel";
-import LiveMarketStrip from "../components/LiveMarketStrip";
+import ExternalBulletinsPanel from "../components/ExternalBulletinsPanel";
 
 export default function PriceBulletinPage() {
   return (
@@ -11,8 +11,8 @@ export default function PriceBulletinPage() {
         title={<>Güncel <em>Fiyat Bülteni</em></>}
         intro="Ürün bazlı fiyat hareketlerini, günlük ortalamaları ve piyasa eğilimlerini tek ekranda takip edin. Tüm değerler tescilli işlemlere dayanır ve günlük olarak güncellenir."
       />
-      <LiveMarketStrip />
-      <PriceBulletinPanel />
+      <PriceBulletinPanel bulletinPage />
+      <ExternalBulletinsPanel />
     </>
   );
 }

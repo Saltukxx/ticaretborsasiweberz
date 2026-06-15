@@ -1,0 +1,14 @@
+# Apply with enable-https.sh after DNS points to this server.
+# Binds app containers to localhost so host nginx can own ports 80/443.
+services:
+  frontend:
+    ports:
+      - "127.0.0.1:9080:80"
+
+  admin:
+    ports:
+      - "127.0.0.1:9081:80"
+
+  api:
+    ports:
+      - "127.0.0.1:3001:3001"

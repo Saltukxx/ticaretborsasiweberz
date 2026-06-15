@@ -1,4 +1,6 @@
-import { reports } from "../data/market";
+import { Link } from "react-router-dom";
+import { usePublicReports } from "../hooks/usePublicApi";
+import { reportDownloadUrl } from "../lib/publicApi";
 import Sparkline from "./Sparkline";
 import { useReveal } from "../hooks/useReveal";
 import "./ReportCards.css";
@@ -13,6 +15,8 @@ const tones = [
 
 export default function ReportCards() {
   const ref = useReveal<HTMLDivElement>();
+  const { data: reportsData, isLoading, isError } = usePublicReports();
+  const reports = reportsData ?? [];
   return (
     <section className="reports">
       <div className="container">
@@ -30,13 +34,26 @@ export default function ReportCards() {
         </div>
 
         <div className="reports__grid reveal-stagger" ref={ref}>
+          {isLoading && <p className="reports__state">Raporlar yükleniyor…</p>}
+          {!isLoading && isError && (
+            <p className="reports__state reports__state--error">
+              Raporlar yüklenemedi. Lütfen daha sonra tekrar deneyin.
+            </p>
+          )}
+          {!isLoading && !isError && reports.length === 0 && (
+            <p className="reports__state">
+              Henüz yayınlanmış rapor yok. Yeni PDF raporlar admin panelinden eklenebilir.
+            </p>
+          )}
           {reports.map((r, i) => {
             const t = tones[i % tones.length];
+            const dateLabel = r.periodLabel
+              ?? (r.reportDate ? new Date(r.reportDate).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" }) : "");
             return (
               <article className="report card" key={r.id}>
                 <div className="report__head">
                   <span className="report__type mono">{r.type}</span>
-                  <span className="report__date mono">{r.date}</span>
+                  <span className="report__date mono">{dateLabel}</span>
                 </div>
                 <h3 className="report__name">{r.name}</h3>
                 <p className="report__sum">{r.summary}</p>
@@ -53,11 +70,11 @@ export default function ReportCards() {
                 </div>
 
                 <div className="report__foot">
-                  <span className="mono">{r.size}</span>
+                  <span className="mono">PDF</span>
                   <div className="report__actions">
-                    <a className="btn-link" href="#">Raporu İncele</a>
-                    <a className="btn btn-ghost report__dl" href="#">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <Link className="btn-link" to={`/raporlar/${r.slug}`}>Raporu İncele</Link>
+                    <a className="btn btn-ghost report__dl" href={reportDownloadUrl(r.slug)}>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <path d="M12 4v12m0 0l-5-5m5 5l5-5M5 20h14" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                       PDF İndir
@@ -72,7 +89,7 @@ export default function ReportCards() {
         </div>
 
         <div className="reports__all">
-          <a className="btn btn-primary" href="/raporlar">Tüm Raporlar</a>
+          <Link className="btn btn-primary" to="/raporlar">Tüm Raporlar</Link>
         </div>
       </div>
     </section>

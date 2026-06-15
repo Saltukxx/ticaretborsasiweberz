@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export function useReveal<T extends HTMLElement = HTMLDivElement>(
   options: IntersectionObserverInit = { threshold: 0.18, rootMargin: "0px 0px -10% 0px" }
@@ -26,6 +26,41 @@ export function useReveal<T extends HTMLElement = HTMLDivElement>(
     return () => obs.disconnect();
   }, []);
   return ref;
+}
+
+/**
+ * Callback-ref tabanlı reveal: eleman veri yüklendikten sonra (geç) mount
+ * olsa bile observer doğru anda bağlanır. Koşullu render edilen
+ * reveal-stagger konteynerlerinde bunu kullanın.
+ */
+export function useRevealCallback<T extends HTMLElement = HTMLDivElement>(
+  options: IntersectionObserverInit = { threshold: 0.18, rootMargin: "0px 0px -10% 0px" }
+) {
+  const obsRef = useRef<IntersectionObserver | null>(null);
+  useEffect(() => () => obsRef.current?.disconnect(), []);
+  return useCallback((el: T | null) => {
+    obsRef.current?.disconnect();
+    obsRef.current = null;
+    if (!el) return;
+    if (typeof IntersectionObserver === "undefined") {
+      el.classList.add("is-visible");
+      return;
+    }
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      options
+    );
+    obs.observe(el);
+    obsRef.current = obs;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
 
 export function useCountUp(target: number, duration = 1800, start = false) {

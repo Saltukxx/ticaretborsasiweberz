@@ -1,0 +1,89 @@
+.home-projects {
+  padding: clamp(56px, 7vw, 96px) 0;
+  background:
+    radial-gradient(900px 520px at 88% 0%, rgba(47, 165, 90, 0.08), transparent 58%),
+    linear-gradient(180deg, rgba(247, 248, 244, 0.4), transparent);
+}
+
+.home-projects__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.home-projects__head h2 {
+  max-width: 18ch;
+  margin: 8px 0 12px;
+}
+
+.home-projects__intro {
+  max-width: 52ch;
+  color: var(--c-text-dim);
+  line-height: 1.65;
+  margin: 0;
+}
+
+.home-projects__cta {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.home-projects__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+/* Kartlar .projects-lane.is-visible'a bağlı; anasayfada lane yok —
+   grid is-visible olduğunda kartları ve progress bar'ı görünür yap */
+.home-projects__grid.is-visible .projects-lane__card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home-projects__grid.is-visible .projects-lane__progress span {
+  width: var(--progress);
+}
+
+/* Güvenlik ağı: observer tetiklenmese bile kartlar en geç 1.2sn'de görünür olur */
+.home-projects__grid:not(.is-visible) .projects-lane__card {
+  animation: home-projects-failsafe 0.8s var(--ease-out) 1.2s forwards;
+}
+.home-projects__grid:not(.is-visible) .projects-lane__progress span {
+  animation: home-projects-progress-failsafe 1.2s var(--ease-out) 1.4s forwards;
+}
+@keyframes home-projects-failsafe {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes home-projects-progress-failsafe {
+  to {
+    width: var(--progress);
+  }
+}
+
+.home-projects__state {
+  color: var(--c-text-muted);
+  text-align: center;
+  padding: 32px 0;
+}
+
+@media (max-width: 980px) {
+  .home-projects__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-projects__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-projects__cta {
+    width: 100%;
+    justify-content: center;
+  }
+}

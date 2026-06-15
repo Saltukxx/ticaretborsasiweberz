@@ -546,6 +546,94 @@
 .news__chip--basin { background: rgba(11, 21, 48, 0.08); color: var(--c-navy-700); }
 .news__chip--sektor { background: rgba(37, 138, 74, 0.1); color: var(--c-green-700); }
 .news__chip--rapor { background: rgba(220, 74, 74, 0.16); color: var(--c-red-400); }
+.news__chip--kurumsal { background: rgba(11, 21, 48, 0.08); color: var(--c-navy-700); }
+
+.news__loading,
+.news__empty {
+  padding: 2rem 0;
+  opacity: 0.65;
+}
+
+.news__pagination {
+  display: grid;
+  gap: 18px;
+  margin-top: 36px;
+  padding: 22px 24px;
+  border: 1px solid rgba(11, 21, 48, 0.1);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 24px 70px -52px rgba(7, 17, 46, 0.35);
+}
+
+.news__pagination-meta {
+  margin: 0;
+  color: var(--c-text-muted);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.news__pagination-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.news__pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  flex: 1;
+}
+
+.news__pagination-btn,
+.news__pagination-page {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(11, 21, 48, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--c-navy-900);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: border-color 0.35s var(--ease-out), color 0.35s var(--ease-out), background 0.35s var(--ease-out);
+}
+
+.news__pagination-page {
+  min-width: 40px;
+  padding: 0 12px;
+}
+
+.news__pagination-btn:hover,
+.news__pagination-page:hover {
+  border-color: rgba(37, 138, 74, 0.35);
+  color: var(--c-green-700);
+}
+
+.news__pagination-page--active {
+  border-color: rgba(37, 138, 74, 0.45);
+  background: rgba(37, 138, 74, 0.12);
+  color: var(--c-green-700);
+}
+
+.news__pagination-btn--disabled {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.news__pagination-ellipsis {
+  color: var(--c-text-muted);
+  padding: 0 4px;
+}
 
 .news__strip {
   display: grid;
@@ -755,6 +843,26 @@
 
   .news__strip .btn-link {
     width: fit-content;
+  }
+}
+
+@media (max-width: 480px) {
+  .news__featured-link {
+    min-height: 420px;
+  }
+
+  .news__featured-media {
+    min-height: 280px;
+  }
+
+  .news__featured-body {
+    margin-top: -100px;
+    padding: 20px;
+  }
+
+  .news__story-media,
+  .news__timeline-media {
+    height: 180px;
   }
 }
 

@@ -3,15 +3,11 @@ import { Link } from "react-router-dom";
 import PageHero from "../components/PageHero";
 import EventsPreview from "../components/EventsPreview";
 import ProjectsShowcase from "../components/ProjectsShowcase";
+import { usePublicProjects } from "../hooks/usePublicApi";
 import { useCountUp } from "../hooks/useReveal";
+import { splitShowcaseProjects, uniqueFocusAreas } from "../lib/mapPublicProjects";
 
 const pulseWords = ["dijital dönüşüm", "üretici hizmeti", "piyasa şeffaflığı", "kurumsal kapasite"];
-
-const pulseStats = [
-  { value: 3, label: "Devam Eden" },
-  { value: 4, label: "Tamamlanan" },
-  { value: 7, label: "Odak Alanı" },
-];
 
 export default function ProjectsPage() {
   return (
@@ -46,6 +42,18 @@ export default function ProjectsPage() {
 }
 
 function ProjectPulseStrip() {
+  const { data: apiProjects } = usePublicProjects(50);
+  const pulseStats = useMemo(() => {
+    const all = apiProjects ?? [];
+    const { ongoing, completed } = splitShowcaseProjects(all);
+    const focusCount = uniqueFocusAreas(all).length;
+    return [
+      { value: ongoing.length, label: "Devam Eden" },
+      { value: completed.length, label: "Tamamlanan" },
+      { value: focusCount, label: "Odak Alanı" },
+    ];
+  }, [apiProjects]);
+
   return (
     <section className="projects-pulse" aria-label="Projeler sayfası hızlı özet">
       <div className="container projects-pulse__inner">

@@ -311,6 +311,17 @@
   }
 }
 
+@media (max-width: 480px) {
+  .president-band__content blockquote {
+    font-size: 1.05rem;
+  }
+
+  .president-band__content blockquote::before {
+    font-size: 4rem;
+    top: -28px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .president-band__silhouettes {
     animation: none;

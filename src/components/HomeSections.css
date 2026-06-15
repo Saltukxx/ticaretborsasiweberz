@@ -344,6 +344,15 @@
   border: 1px solid var(--c-line);
 }
 
+.hsec-svc__tile-cat {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-green-600);
+}
+
 .hsec-svc__tile h3 {
   margin: 0 0 6px;
   font-size: 1.05rem;
@@ -371,6 +380,20 @@
 @media (max-width: 900px) {
   .hsec-region__card {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .hsec-region__visual {
+    min-height: 180px;
+  }
+
+  .hsec-region__body {
+    padding: 22px;
+  }
+
+  .hsec-dual__col {
+    padding: 20px;
   }
 }
 

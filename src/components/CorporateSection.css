@@ -19,6 +19,12 @@
   color: var(--c-text-dim);
 }
 
+.corp__status {
+  margin: 12px 0 0;
+  font-size: 0.9rem;
+  color: rgba(11, 21, 48, 0.62);
+}
+
 .corp__mv {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -114,4 +120,14 @@
   .corp__time-row { grid-template-columns: 50px 16px 1fr; }
   .corp__time-num { display: none; }
   .corp__time-rail { left: 74px; }
+}
+
+@media (max-width: 480px) {
+  .corp__grid {
+    gap: 36px;
+  }
+
+  .corp__lead {
+    padding: 22px;
+  }
 }

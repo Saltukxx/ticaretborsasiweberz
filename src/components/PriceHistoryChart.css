@@ -1,0 +1,61 @@
+.price-history-chart {
+  width: 100%;
+  max-width: 100%;
+  min-height: 220px;
+}
+
+.price-history-chart--loading,
+.price-history-chart--empty {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border: 1px dashed rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  color: var(--c-ink-500);
+}
+
+.price-history-chart .recharts-wrapper {
+  font-family: inherit;
+}
+
+.price-history-chart__axis-tick {
+  font-size: 10px;
+  fill: var(--c-ink-500);
+  font-family: var(--font-mono, monospace);
+}
+
+.price-history-chart .recharts-tooltip-wrapper {
+  outline: none;
+  z-index: 2;
+}
+
+.price-history-chart__tooltip {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.65rem 0.85rem;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  font-size: 0.8rem;
+}
+
+.price-history-chart__unit {
+  margin-top: 0.5rem;
+  text-align: right;
+  color: var(--c-ink-500);
+  font-size: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .price-history-chart,
+  .price-history-chart--loading,
+  .price-history-chart--empty {
+    min-height: 180px;
+  }
+
+  .price-history-chart__axis-tick {
+    font-size: 9px;
+  }
+}

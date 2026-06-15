@@ -1,0 +1,44 @@
+.kvkk-hub__panel {
+  max-width: 920px;
+  margin-inline: auto;
+}
+
+.kvkk-hub__register {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.kvkk-hub__item {
+  border-bottom: 1px solid var(--c-line);
+}
+
+.kvkk-hub__item:last-child {
+  border-bottom: none;
+}
+
+.kvkk-hub__item-main {
+  border-bottom: none;
+}
+
+.kvkk-hub__item-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 0 1rem 0;
+  margin-top: -0.35rem;
+}
+
+@media (min-width: 721px) {
+  .kvkk-hub__item-actions {
+    padding-left: 0.25rem;
+    padding-bottom: 1.15rem;
+  }
+}
+
+@media (max-width: 720px) {
+  .kvkk-hub__item-actions {
+    flex-wrap: wrap;
+    padding-inline: 0.15rem;
+  }
+}

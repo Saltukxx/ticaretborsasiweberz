@@ -1,5 +1,12 @@
 import { Link } from "react-router-dom";
-import { currencies, products } from "../data/market";
+import { useCurrencyRates, useCurrentPrices } from "../hooks/usePublicApi";
+import {
+  changeDirection,
+  formatChangePct,
+  formatPrice,
+  formatVolume,
+  hasChangePct,
+} from "../lib/priceDisplay";
 import Sparkline from "./Sparkline";
 import { useReveal } from "../hooks/useReveal";
 import "./MarketPriceOverview.css";
@@ -8,7 +15,14 @@ export default function MarketPriceOverview() {
   const headRef = useReveal<HTMLDivElement>();
   const cursRef = useReveal<HTMLDivElement>();
   const gridRef = useReveal<HTMLDivElement>();
+
+  const { data: currencyData, isLoading: fxLoading } = useCurrencyRates();
+  const { data: priceData, isLoading: pricesLoading } = useCurrentPrices();
+
+  const currencies = currencyData ?? [];
+  const products = priceData ?? [];
   const shown = products.slice(0, 6);
+  const empty = !pricesLoading && !fxLoading && products.length === 0 && currencies.length === 0;
 
   return (
     <section className="mpov">
@@ -35,33 +49,63 @@ export default function MarketPriceOverview() {
             {currencies.map((c) => (
               <span key={c.code} className="mpov__cur mono" role="listitem">
                 <span>{c.code}</span>
-                <strong>{c.value}</strong>
-                <span className={c.up ? "is-up" : "is-down"}>{c.change}</span>
+                <strong>
+                  {c.rateValue.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 4 })}
+                </strong>
+                <span className={(c.direction ?? 0) >= 0 ? "is-up" : "is-down"}>
+                  {c.changePct != null
+                    ? `${c.changePct >= 0 ? "+" : ""}${c.changePct.toLocaleString("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`
+                    : ""}
+                </span>
               </span>
             ))}
           </div>
         </div>
 
+        {empty ? (
+          <p className="mpov__empty mono">
+            Piyasa özeti şu an görüntülenemiyor. Güncel fiyat ve kur bilgileri yayımlandığında bu bölümde
+            yer alacaktır.
+          </p>
+        ) : null}
+
         <div className="mpov__grid reveal" ref={gridRef}>
           {shown.map((p) => {
-            const up = p.change >= 0;
+            const dir = changeDirection(p.change_pct);
+            const up = dir === "up";
+            const down = dir === "down";
+            const updatedStr = p.entry_date
+              ? new Date(p.entry_date).toLocaleDateString("tr-TR", { day: "numeric", month: "short" })
+              : "—";
             return (
-              <article key={p.id} className="mpov__tile card">
+              <article key={p.product_slug} className="mpov__tile card">
                 <div className="mpov__tile-top">
-                  <h3>{p.name}</h3>
-                  <span className={`mono mpov__tile-chg ${up ? "is-up" : "is-down"}`}>
-                    {up ? "+" : ""}
-                    {p.change}%
+                  <h3>{p.product_name}</h3>
+                  <span
+                    className={`mono mpov__tile-chg ${
+                      hasChangePct(p.change_pct)
+                        ? up
+                          ? "is-up"
+                          : "is-down"
+                        : "mpov__tile-chg--na"
+                    }`}
+                  >
+                    {formatChangePct(p.change_pct)}
                   </span>
                 </div>
                 <p className="mono mpov__tile-price">
-                  {p.avg.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}
-                  <span>{p.unit}</span>
+                  {formatPrice(p.avg_price)}
+                  <span>{p.product_unit}</span>
                 </p>
-                <Sparkline width={340} height={52} data={p.series} color={up ? "var(--c-green-600)" : "var(--c-red-500)"} />
+                <Sparkline
+                  width={340}
+                  height={52}
+                  data={p.sparkline_series ?? []}
+                  color={down ? "var(--c-red-500)" : "var(--c-green-600)"}
+                />
                 <div className="mono mpov__tile-meta">
-                  <span>Hacim {p.volume}</span>
-                  <span>{p.updated}</span>
+                  <span>Hacim {formatVolume(p)}</span>
+                  <span>{updatedStr}</span>
                 </div>
               </article>
             );

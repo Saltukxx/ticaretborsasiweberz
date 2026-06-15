@@ -48,6 +48,13 @@
 
   /* Layout */
   --container: 1320px;
+  --bp-xl: 1180px;
+  --bp-lg: 900px;
+  --bp-md: 720px;
+  --bp-sm: 640px;
+  --bp-xs: 480px;
+  --gutter: 24px;
+  --gutter-sm: 16px;
   --radius-sm: 6px;
   --radius: 12px;
   --radius-lg: 18px;
@@ -147,8 +154,14 @@ p {
 
 /* ----------------------------- LAYOUT ----------------------------- */
 .container {
-  width: min(100% - 48px, var(--container));
+  width: min(calc(100% - calc(var(--gutter) * 2)), var(--container));
   margin-inline: auto;
+}
+
+@media (max-width: 720px) {
+  .container {
+    width: min(calc(100% - calc(var(--gutter-sm) * 2)), var(--container));
+  }
 }
 
 .eyebrow {
@@ -182,6 +195,22 @@ p {
 .section-title p {
   max-width: 460px;
   font-size: 0.98rem;
+}
+
+@media (max-width: 720px) {
+  .section-title {
+    gap: 24px;
+    margin-bottom: 36px;
+  }
+
+  .section-title h2 {
+    max-width: none;
+    flex: 1 1 100%;
+  }
+
+  .section-title p {
+    max-width: none;
+  }
 }
 
 /* ----------------------------- BUTONLAR ----------------------------- */
@@ -424,3 +453,7 @@ section {
 .text-muted { color: var(--c-text-muted); }
 .uppercase { text-transform: uppercase; letter-spacing: 0.24em; }
 .tabular { font-variant-numeric: tabular-nums; }
+.scroll-x {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

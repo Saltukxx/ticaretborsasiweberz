@@ -1,4 +1,14 @@
 import { useMemo, useState } from "react";
+import { useMapDistricts } from "../hooks/usePublicApi";
+import {
+  CENTER_DISTRICT_SLUG,
+  DISTRICT_FALLBACK,
+  DISTRICT_POSITIONS,
+  DISTRICT_SLUG_ORDER,
+  MAP_BBOX,
+  type DistrictSlug,
+} from "../lib/mapDistrictPositions";
+import type { PublicMapDistrict } from "../lib/publicApi";
 import { useReveal } from "../hooks/useReveal";
 import "./RegionalMap.css";
 
@@ -9,31 +19,9 @@ interface Node {
   label: string;
   prod: string;
   v: string;
+  memberCount: number;
+  registrationCount: number;
 }
-
-const nodes: Node[] = [
-  { id: "merkez", lon: 41.2769, lat: 39.9043, label: "Erzurum Merkez", prod: "Hububat · Tescil Merkezi", v: "284,5 ton" },
-  { id: "pasinler", lon: 41.6783, lat: 39.9789, label: "Pasinler", prod: "Buğday · Arpa", v: "62,4 ton" },
-  { id: "horasan", lon: 42.1731, lat: 40.0408, label: "Horasan", prod: "Hububat · Bakliyat", v: "48,1 ton" },
-  { id: "askale", lon: 40.6928, lat: 39.9214, label: "Aşkale", prod: "Yemlik · Hayvancılık", v: "33,6 ton" },
-  { id: "ispir", lon: 40.9947, lat: 40.4742, label: "İspir", prod: "Süt Ürünleri", v: "12,8 ton" },
-  { id: "oltu", lon: 41.9847, lat: 40.5439, label: "Oltu", prod: "Tarımsal Karışık", v: "21,5 ton" },
-  { id: "tortum", lon: 41.5494, lat: 40.2950, label: "Tortum", prod: "Hayvancılık", v: "18,2 ton" },
-  { id: "narman", lon: 41.8847, lat: 40.3417, label: "Narman", prod: "Hububat", v: "14,4 ton" },
-  { id: "cat", lon: 40.9925, lat: 39.6097, label: "Çat", prod: "Yemlik · Arpa", v: "11,9 ton" },
-];
-
-// Map bbox — calibrated so Erzurum Merkez (lon 41.2769, lat 39.9043) lands on
-// the visible city cluster of the underlying poster (≈ horizontal center,
-// slightly above vertical middle). The poster is portrait 2451×3467, centered
-// on (lat 39.9063, lon 41.2728). Adjust these four numbers if district nodes
-// appear misaligned with the underlying map.
-const MAP_BBOX = {
-  lonMin: 40.40,
-  lonMax: 42.15,
-  latMin: 38.95,
-  latMax: 40.86,
-};
 
 const project = (lon: number, lat: number): { x: number; y: number } => {
   const x = ((lon - MAP_BBOX.lonMin) / (MAP_BBOX.lonMax - MAP_BBOX.lonMin)) * 100;
@@ -41,9 +29,33 @@ const project = (lon: number, lat: number): { x: number; y: number } => {
   return { x, y };
 };
 
+function buildNode(slug: DistrictSlug, row?: PublicMapDistrict): Node | null {
+  const pos = DISTRICT_POSITIONS[slug];
+  const fallback = DISTRICT_FALLBACK[slug];
+  if (!pos || !fallback) return null;
+
+  return {
+    id: slug,
+    lon: pos.lon,
+    lat: pos.lat,
+    label: row?.label ?? fallback.label,
+    prod: row?.productLine ?? fallback.productLine,
+    v: row?.dailyVolume ?? fallback.dailyVolume,
+    memberCount: row?.memberCount ?? fallback.memberCount,
+    registrationCount: row?.registrationCount ?? fallback.registrationCount,
+  };
+}
+
 export default function RegionalMap() {
-  const [active, setActive] = useState<Node>(nodes[0]);
+  const { data: apiRows, isLoading, isError } = useMapDistricts();
   const ref = useReveal<HTMLDivElement>();
+
+  const nodes = useMemo(() => {
+    const bySlug = new Map((apiRows ?? []).map((r) => [r.slug, r]));
+    return DISTRICT_SLUG_ORDER.map((slug) => buildNode(slug, bySlug.get(slug))).filter(
+      (node): node is Node => node != null,
+    );
+  }, [apiRows]);
 
   const projectedNodes = useMemo(
     () =>
@@ -51,10 +63,20 @@ export default function RegionalMap() {
         const { x, y } = project(n.lon, n.lat);
         return { ...n, x, y };
       }),
-    []
+    [nodes],
   );
 
-  const centerNode = projectedNodes[0];
+  const centerNode = useMemo(
+    () => projectedNodes.find((n) => n.id === CENTER_DISTRICT_SLUG) ?? projectedNodes[0],
+    [projectedNodes],
+  );
+
+  const [active, setActive] = useState<Node | null>(null);
+  const activeNode = active ?? centerNode ?? nodes[0] ?? null;
+
+  if (!activeNode || !centerNode) {
+    return null;
+  }
 
   return (
     <section className="rmap">
@@ -67,8 +89,8 @@ export default function RegionalMap() {
             </h2>
           </div>
           <p>
-            Erzurum ve çevresindeki tarımsal üretim, ticaret ve piyasa hareketlerini
-            bölgesel ölçekte destekleyen kurumsal yapı.
+            Erzurum merkez tescil noktası ve 17 ilçede tarımsal üretim, ticaret ve
+            piyasa hareketlerini bölgesel ölçekte destekleyen kurumsal yapı.
           </p>
         </div>
 
@@ -90,22 +112,24 @@ export default function RegionalMap() {
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
-                {projectedNodes.slice(1).map((n) => (
-                  <line
-                    key={`l-${n.id}`}
-                    x1={centerNode.x}
-                    y1={centerNode.y}
-                    x2={n.x}
-                    y2={n.y}
-                    className={`rmap__link ${active.id === n.id ? "is-active" : ""}`}
-                  />
-                ))}
+                {projectedNodes
+                  .filter((n) => n.id !== centerNode.id)
+                  .map((n) => (
+                    <line
+                      key={`l-${n.id}`}
+                      x1={centerNode.x}
+                      y1={centerNode.y}
+                      x2={n.x}
+                      y2={n.y}
+                      className={`rmap__link ${activeNode.id === n.id ? "is-active" : ""}`}
+                    />
+                  ))}
               </svg>
 
               <div className="rmap__overlay">
                 {projectedNodes.map((n) => {
-                  const isCenter = n.id === "merkez";
-                  const isActive = active.id === n.id;
+                  const isCenter = n.id === CENTER_DISTRICT_SLUG;
+                  const isActive = activeNode.id === n.id;
                   return (
                     <button
                       key={n.id}
@@ -132,21 +156,27 @@ export default function RegionalMap() {
 
           <aside className="rmap__panel">
             <span className="mono rmap__panel-cat">Aktif Konum</span>
-            <h3>{active.label}</h3>
-            <p>{active.prod}</p>
+            {isLoading && <p className="rmap__status">Veriler yükleniyor…</p>}
+            {isError && !isLoading && (
+              <p className="rmap__status rmap__status--warn">
+                Canlı ilçe verisi yüklenemedi; varsayılan değerler gösteriliyor.
+              </p>
+            )}
+            <h3>{activeNode.label}</h3>
+            <p>{activeNode.prod}</p>
 
             <div className="rmap__stats">
               <div>
                 <span className="mono">Günlük Hacim</span>
-                <strong className="tabular">{active.v}</strong>
+                <strong className="tabular">{activeNode.v}</strong>
               </div>
               <div>
                 <span className="mono">Bağlı Üye</span>
-                <strong className="tabular">{Math.floor(80 + Math.random() * 240)}</strong>
+                <strong className="tabular">{activeNode.memberCount}</strong>
               </div>
               <div>
                 <span className="mono">Tescil İşlemi</span>
-                <strong className="tabular">{Math.floor(280 + Math.random() * 1200)}</strong>
+                <strong className="tabular">{activeNode.registrationCount}</strong>
               </div>
             </div>
 
@@ -165,10 +195,13 @@ export default function RegionalMap() {
               </span>
             </div>
 
-            <a className="btn-link" href="/piyasa-verileri">Bölgesel Veriye Git</a>
+            <a className="btn-link" href="/piyasa-verileri">
+              Bölgesel Veriye Git
+            </a>
           </aside>
         </div>
       </div>
     </section>
   );
 }
+

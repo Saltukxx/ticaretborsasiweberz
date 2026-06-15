@@ -1,0 +1,2303 @@
+
+
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+    <title>DataBank</title>
+    <meta charset="windows-1254">
+    <meta name="viewport" content="width=1200, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <style>
+
+    @viewport{
+        zoom: 1.0;
+        width: device-width;
+    }
+
+    * {
+        font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+    }
+    
+    body {
+        background-color: #111;
+        color: white;
+        width: 100%;
+    }
+    
+    select,
+    input {
+        background-color: #333;
+        color: white;
+        padding: 8px;
+    }
+    
+    ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+
+</head>
+
+<body lang="tr">
+
+    
+
+<style>
+    #header {
+        position: fixed;
+        z-index: 2;
+        width: 100%;
+    }
+    
+    #kurumlogo {
+        width: 34px;
+        float: left;
+        margin-right: 10px;
+        margin-top: 4px;
+        border-radius:50%;
+    }
+    
+    #kurumname {
+        font-size: 30px;
+    }
+    
+    .headline {
+        background-color: #222;
+        padding: 4px;
+    }
+    
+    #ldn {
+        position: absolute;
+        margin-left:50px;
+        top: 14px;
+        width: 26px;
+        display: none;
+    }
+
+    #dtime{
+        font-size: 20px;
+        float: right;
+        padding-top:6px;
+        margin-right:10px;
+    }
+
+</style>
+<div id="header" class="headline">
+    <img id="kurumlogo" src="../../Logo/Erzurum_Png.png" />
+    <span id="kurumname">ERZURUM TÄ°CARET BORSASI</span>
+    <img id="ldn" src="../../Public/Loading/gray.gif">
+    <span id="dtime">21 MayÄ±s 2026 PerÅŸembe</span>
+    </div><style>
+    #leftmenu {
+        width: 150px;
+        float: left;
+        position: fixed;
+        margin-top: 50px;
+    }
+    
+    #leftmenu div:hover {
+        cursor: pointer;
+        background-color: #333;
+    }
+    
+    .leftmenu {
+        background-color: #222;
+        width: 150px;
+        height: 110px;
+        padding: 4px;
+        margin-top: 2px;
+        text-align: center;
+    }
+    
+    .center {
+        text-align: center;
+    }
+    
+    #canli {
+        background-color: yellow;
+        padding: 0px 4px;
+        margin-top: -40px;
+        margin-right: 10px;
+        float: right;
+        border-radius: 22px;
+        color: black;
+        font-weight: bold;
+        width: 50px;
+    }
+    
+    #home {
+        width: 45px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    #cotton {
+        width: 45px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    #bulten {
+        width: 45px;
+        margin: 15px 0px 10px 0px;
+    }
+    
+    #urunchart {
+        width: 45px;
+        margin: 15px 0px 10px 0px;
+    }
+    
+    #islem {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+
+    #verification {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+
+    #haber {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    .leftactive {
+        color: orange;
+        font-weight: bold;
+    }
+    
+    .arriwright {
+        width: 20px;
+        right: 0px;
+        margin: 4px;
+        position: absolute;    }
+    
+    .ctn {
+        position: relative;
+    }
+    
+    .arriwright {
+        display: none;
+    }
+
+    #sip {
+        width: 100%;
+        text-align: center;
+        padding: 20px 0px;
+        margin-top:2px;
+        color:gold;
+    }
+
+    #sip:hover {
+        cursor:default!important;
+        background-color: #111!important;
+    }
+</style>
+
+<div id="leftmenu">
+
+    <div id="mn0" class="leftmenu home" onclick="$('#ldn').show();window.open('./?lno=0','_self')">
+        <img id="home" src="../../Modules/iMages/home.png">
+        <img class="arriwright lno0" src="../../Modules/iMages/arrow-right.png"><br>Ana Sayfa
+    </div>
+
+    
+
+    <div id="mn2" class="leftmenu tescil" onclick="$('#ldn').show();window.open('./?lno=2','_self')">
+        <img id="bulten" src="../../Modules/iMages/ereport.png">
+        <img class="arriwright lno2" src="../../Modules/iMages/arrow-right.png"><br> Tescil BÃ¼ltenleri
+    </div>
+
+    <div id="mn3" class="leftmenu chart" onclick="$('#ldn').show();window.open('./?lno=3','_self')">
+        <img id="urunchart" src="../../Modules/iMages/ist_white.png">
+        <img class="arriwright lno3" src="../../Modules/iMages/arrow-right.png"><br> ÃœrÃ¼n Grafikleri
+    </div>
+
+    <div id="mn4" class="leftmenu volume" onclick="$('#ldn').show();window.open('./?lno=4','_self')">
+        <img id="islem" src="../../Modules/iMages/dashboard.png" style="width:65px;height:45px;margin-top:15px;">
+        <img class="arriwright lno4" src="../../Modules/iMages/arrow-right.png"><br> Ä°ÅŸlem Hacimleri
+    </div>
+
+    <div id="mn5" class="leftmenu volume" onclick="window.open('../../DocumentVerification/?','_blank')">
+        <img id="verification" src="../../Modules/iMages/kar1.png">
+        <img class="arriwright lno5" src="../../Modules/iMages/arrow-right.png"><br>Tescil DoÄŸrulama
+    </div>
+
+    <div id="sip"></div>
+
+</div>
+<script>
+    $('.lno2').show();
+    $('#mn2').addClass('leftactive');
+</script><style>
+    #contentmenu {
+        margin-left: 152px;
+        width:calc(100%-255px);
+        min-height:670px;
+        padding:58px 8px 8px 8px;     
+        margin-bottom:50px;
+
+    }
+</style>
+
+<div id="contentmenu">
+
+   <div style="padding:0px 10px;">
+
+    <style>
+    .sec_120_10 {
+        margin: 20px 0PX 10px 0PX;
+        width: 100%;
+        color: orange;
+        text-align: center;
+    }
+    
+    #form1 {
+        width: 100%;
+    }
+    
+    #form1 input,
+    select {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        margin: 6px;
+        color: orange;
+        line-height: 20px!important;
+    }
+    
+    #form1 h2 {
+        color: orange;
+    }
+    
+    #form1 img {
+        margin-top: -5px;
+        padding: 5px;
+        width:50px;
+        background-color:#222;
+        border-radius:50%;
+    }
+    
+    #form1 img:hover {
+        background-color: #333;        
+    }
+    .sec_120_10_img h4 {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .margin-bottom-120 {
+        margin-bottom: 15px;
+    }
+    
+    .mg {
+        padding-left: 5px !important;
+        font-size: 14pt !important;
+        background: #3c3c3c;
+        color: orange;
+    }
+    
+    .ms {
+        padding-left: 35px !important;
+        font-size: 14pt !important;
+        background: #333;
+        color: limegreen;
+    }
+    
+    .msd {
+        padding-left: 35px !important;
+        font-size: 12px;
+        background: #333;
+        color: gold;
+        text-align: right;
+    }
+    
+    .msc {
+        text-align: center!important;
+    }
+    
+    .ma {
+        padding-left: 65px !important;
+    }
+    
+    .at {
+        border-top: 1px solid #555!important;
+        padding-bottom: 10px !important;
+        font-style: xitalic !important;
+    }
+    
+    .gt {
+        border-top: 1px solid red !important;
+        font-size: 12pt !important;
+    }
+    
+    .thth td {
+        padding: 8px;
+        border: 1px solid #dddddd!important;
+        margin-bottom: 10px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    td {
+        border: 0 !important;
+    }
+    
+    .pd24 {
+        padding-right: 24px;
+    }
+    
+    .crsr:hover {
+        cursor: pointer;
+    }
+    
+    .rimg {
+        background-color: #333;
+    }
+    
+    td {
+        padding: 1px 8px;
+    }
+    
+    .bline:hover {
+        background-color: #444;
+        color: goldenrod;
+        cursor: pointer;
+    }
+
+    .pdf {
+
+        border-radius: 0!important;
+        width: 37px!important;
+
+    }
+
+    .xls {
+
+        border-radius: 0!important;
+        width: 44px!important;
+
+    }
+
+</style>
+
+    <!-- Grid -->
+    <h2 class="sec_120_10">
+        TESCÄ°L BÃœLTENÄ°
+    </h2>
+
+    <form id="form1" 
+          name="form1" 
+          method="POST" 
+          onsubmit="myFunction()"
+          action="./?PID=">
+
+        <table style="width:100%;">
+
+            <tr>	
+	
+<td align="center" colspan="8">
+	
+    <select class="combo" 
+    onchange ="capcontrol();" 
+    id="CAPNO" 
+    name="CAPNO">
+        <option value="D">GÃ¼nlÃ¼k Borsa BÃ¼teni</option>
+        <option value="W">HaftalÄ±k Borsa BÃ¼lteni</option>
+        <option value="M">AylÄ±k Borsa BÃ¼teni</option>
+        <option value="Y">YÄ±llÄ±k Borsa BÃ¼teni</option>
+        <option value="Z">Ä°ki Tarih ArasÄ± Borsa BÃ¼lteni</option>      	
+    </select>
+    <script> $('#CAPNO').val('D') </script>
+      	
+    <input type="date" 
+            id="BDATE" 
+            name="BDATE" 
+            value="2026-05-21" 
+            style="width:140px;" 
+            class="combo">
+    <input type="date" 
+            id="EDATE" 
+            name="EDATE" 
+            value="2026-05-21" 
+            style="width:140px;
+            display:none;"       	       
+            class="combo">
+
+    <select class="combo" 
+            xonchange ="document.form1.submit();" 
+            id="YEA" 
+            style="display:none;" 
+            name="YEA">
+    
+    <option value="2026">2026</option>
+    
+    <option value="2025">2025</option>
+    
+    <option value="2024">2024</option>
+    
+    <option value="2023">2023</option>
+    
+    <option value="2022">2022</option>
+    
+    <option value="2021">2021</option>
+    
+    <option value="2020">2020</option>
+    
+    <option value="2019">2019</option>
+    
+    <option value="2018">2018</option>
+    
+    <option value="2017">2017</option>
+    
+    <option value="2016">2016</option>
+    
+    <option value="2015">2015</option>
+    
+    <option value="2014">2014</option>
+    
+    <option value="2013">2013</option>
+    
+    <option value="2012">2012</option>
+    
+    <option value="2011">2011</option>
+    
+    <option value="2010">2010</option>
+    
+    <option value="2009">2009</option>
+    
+			    
+    </select>
+    <script> $('#YEA').val('2026') </script>
+      	       
+
+    <select class="combo" 
+            xonchange ="document.form1.submit();" 
+            id="MON" 
+            style="display:none;" 
+            name="MON">
+
+    
+                                                        
+    <option value="2026.MayÄ±s">2026 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2026.Nisan">2026 / Nisan</option>
+
+    
+                                                        
+    <option value="2026.Mart">2026 / Mart</option>
+
+    
+                                                        
+    <option value="2026.Å�ubat">2026 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2026.Ocak">2026 / Ocak</option>
+
+    
+                                                        
+    <option value="2025.AralÄ±k">2025 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2025.KasÄ±m">2025 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2025.Ekim">2025 / Ekim</option>
+
+    
+                                                        
+    <option value="2025.EylÃ¼l">2025 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2025.AÄŸustos">2025 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2025.Temmuz">2025 / Temmuz</option>
+
+    
+                                                        
+    <option value="2025.Haziran">2025 / Haziran</option>
+
+    
+                                                        
+    <option value="2025.MayÄ±s">2025 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2025.Nisan">2025 / Nisan</option>
+
+    
+                                                        
+    <option value="2025.Mart">2025 / Mart</option>
+
+    
+                                                        
+    <option value="2025.Å�ubat">2025 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2025.Ocak">2025 / Ocak</option>
+
+    
+                                                        
+    <option value="2024.AralÄ±k">2024 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2024.KasÄ±m">2024 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2024.Ekim">2024 / Ekim</option>
+
+    
+                                                        
+    <option value="2024.EylÃ¼l">2024 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2024.AÄŸustos">2024 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2024.Temmuz">2024 / Temmuz</option>
+
+    
+                                                        
+    <option value="2024.Haziran">2024 / Haziran</option>
+
+    
+                                                        
+    <option value="2024.MayÄ±s">2024 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2024.Nisan">2024 / Nisan</option>
+
+    
+                                                        
+    <option value="2024.Mart">2024 / Mart</option>
+
+    
+                                                        
+    <option value="2024.Å�ubat">2024 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2024.Ocak">2024 / Ocak</option>
+
+    
+                                                        
+    <option value="2023.AralÄ±k">2023 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2023.KasÄ±m">2023 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2023.Ekim">2023 / Ekim</option>
+
+    
+                                                        
+    <option value="2023.EylÃ¼l">2023 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2023.AÄŸustos">2023 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2023.Temmuz">2023 / Temmuz</option>
+
+    
+                                                        
+    <option value="2023.Haziran">2023 / Haziran</option>
+
+    
+                                                        
+    <option value="2023.MayÄ±s">2023 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2023.Nisan">2023 / Nisan</option>
+
+    
+                                                        
+    <option value="2023.Mart">2023 / Mart</option>
+
+    
+                                                        
+    <option value="2023.Å�ubat">2023 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2023.Ocak">2023 / Ocak</option>
+
+    
+                                                        
+    <option value="2022.AralÄ±k">2022 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2022.KasÄ±m">2022 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2022.Ekim">2022 / Ekim</option>
+
+    
+                                                        
+    <option value="2022.EylÃ¼l">2022 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2022.AÄŸustos">2022 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2022.Temmuz">2022 / Temmuz</option>
+
+    
+                                                        
+    <option value="2022.Haziran">2022 / Haziran</option>
+
+    
+                                                        
+    <option value="2022.MayÄ±s">2022 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2022.Nisan">2022 / Nisan</option>
+
+    
+                                                        
+    <option value="2022.Mart">2022 / Mart</option>
+
+    
+                                                        
+    <option value="2022.Å�ubat">2022 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2022.Ocak">2022 / Ocak</option>
+
+    
+                                                        
+    <option value="2021.AralÄ±k">2021 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2021.KasÄ±m">2021 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2021.Ekim">2021 / Ekim</option>
+
+    
+                                                        
+    <option value="2021.EylÃ¼l">2021 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2021.AÄŸustos">2021 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2021.Temmuz">2021 / Temmuz</option>
+
+    
+                                                        
+    <option value="2021.Haziran">2021 / Haziran</option>
+
+    
+                                                        
+    <option value="2021.MayÄ±s">2021 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2021.Nisan">2021 / Nisan</option>
+
+    
+                                                        
+    <option value="2021.Mart">2021 / Mart</option>
+
+    
+                                                        
+    <option value="2021.Å�ubat">2021 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2021.Ocak">2021 / Ocak</option>
+
+    
+                                                        
+    <option value="2020.AralÄ±k">2020 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2020.KasÄ±m">2020 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2020.Ekim">2020 / Ekim</option>
+
+    
+                                                        
+    <option value="2020.EylÃ¼l">2020 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2020.AÄŸustos">2020 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2020.Temmuz">2020 / Temmuz</option>
+
+    
+                                                        
+    <option value="2020.Haziran">2020 / Haziran</option>
+
+    
+                                                        
+    <option value="2020.MayÄ±s">2020 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2020.Nisan">2020 / Nisan</option>
+
+    
+                                                        
+    <option value="2020.Mart">2020 / Mart</option>
+
+    
+                                                        
+    <option value="2020.Å�ubat">2020 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2020.Ocak">2020 / Ocak</option>
+
+    
+                                                        
+    <option value="2019.AralÄ±k">2019 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2019.KasÄ±m">2019 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2019.Ekim">2019 / Ekim</option>
+
+    
+                                                        
+    <option value="2019.EylÃ¼l">2019 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2019.AÄŸustos">2019 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2019.Temmuz">2019 / Temmuz</option>
+
+    
+                                                        
+    <option value="2019.Haziran">2019 / Haziran</option>
+
+    
+                                                        
+    <option value="2019.MayÄ±s">2019 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2019.Nisan">2019 / Nisan</option>
+
+    
+                                                        
+    <option value="2019.Mart">2019 / Mart</option>
+
+    
+                                                        
+    <option value="2019.Å�ubat">2019 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2019.Ocak">2019 / Ocak</option>
+
+    
+                                                        
+    <option value="2018.AralÄ±k">2018 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2018.KasÄ±m">2018 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2018.Ekim">2018 / Ekim</option>
+
+    
+                                                        
+    <option value="2018.EylÃ¼l">2018 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2018.AÄŸustos">2018 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2018.Temmuz">2018 / Temmuz</option>
+
+    
+                                                        
+    <option value="2018.Haziran">2018 / Haziran</option>
+
+    
+                                                        
+    <option value="2018.MayÄ±s">2018 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2018.Nisan">2018 / Nisan</option>
+
+    
+                                                        
+    <option value="2018.Mart">2018 / Mart</option>
+
+    
+                                                        
+    <option value="2018.Å�ubat">2018 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2018.Ocak">2018 / Ocak</option>
+
+    
+                                                        
+    <option value="2017.AralÄ±k">2017 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2017.KasÄ±m">2017 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2017.Ekim">2017 / Ekim</option>
+
+    
+                                                        
+    <option value="2017.EylÃ¼l">2017 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2017.AÄŸustos">2017 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2017.Temmuz">2017 / Temmuz</option>
+
+    
+                                                        
+    <option value="2017.Haziran">2017 / Haziran</option>
+
+    
+                                                        
+    <option value="2017.MayÄ±s">2017 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2017.Nisan">2017 / Nisan</option>
+
+    
+                                                        
+    <option value="2017.Mart">2017 / Mart</option>
+
+    
+                                                        
+    <option value="2017.Å�ubat">2017 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2017.Ocak">2017 / Ocak</option>
+
+    
+                                                        
+    <option value="2016.AralÄ±k">2016 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2016.KasÄ±m">2016 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2016.Ekim">2016 / Ekim</option>
+
+    
+                                                        
+    <option value="2016.EylÃ¼l">2016 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2016.AÄŸustos">2016 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2016.Temmuz">2016 / Temmuz</option>
+
+    
+                                                        
+    <option value="2016.Haziran">2016 / Haziran</option>
+
+    
+                                                        
+    <option value="2016.MayÄ±s">2016 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2016.Nisan">2016 / Nisan</option>
+
+    
+                                                        
+    <option value="2016.Mart">2016 / Mart</option>
+
+    
+                                                        
+    <option value="2016.Å�ubat">2016 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2016.Ocak">2016 / Ocak</option>
+
+    
+                                                        
+    <option value="2015.AralÄ±k">2015 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2015.KasÄ±m">2015 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2015.Ekim">2015 / Ekim</option>
+
+    
+                                                        
+    <option value="2015.EylÃ¼l">2015 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2015.AÄŸustos">2015 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2015.Temmuz">2015 / Temmuz</option>
+
+    
+                                                        
+    <option value="2015.Haziran">2015 / Haziran</option>
+
+    
+                                                        
+    <option value="2015.MayÄ±s">2015 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2015.Nisan">2015 / Nisan</option>
+
+    
+                                                        
+    <option value="2015.Mart">2015 / Mart</option>
+
+    
+                                                        
+    <option value="2015.Å�ubat">2015 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2015.Ocak">2015 / Ocak</option>
+
+    
+                                                        
+    <option value="2014.AralÄ±k">2014 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2014.KasÄ±m">2014 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2014.Ekim">2014 / Ekim</option>
+
+    
+                                                        
+    <option value="2014.EylÃ¼l">2014 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2014.AÄŸustos">2014 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2014.Temmuz">2014 / Temmuz</option>
+
+    
+                                                        
+    <option value="2014.Haziran">2014 / Haziran</option>
+
+    
+                                                        
+    <option value="2014.MayÄ±s">2014 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2014.Nisan">2014 / Nisan</option>
+
+    
+                                                        
+    <option value="2014.Mart">2014 / Mart</option>
+
+    
+                                                        
+    <option value="2014.Å�ubat">2014 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2014.Ocak">2014 / Ocak</option>
+
+    
+                                                        
+    <option value="2013.AralÄ±k">2013 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2013.KasÄ±m">2013 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2013.Ekim">2013 / Ekim</option>
+
+    
+                                                        
+    <option value="2013.EylÃ¼l">2013 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2013.AÄŸustos">2013 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2013.Temmuz">2013 / Temmuz</option>
+
+    
+                                                        
+    <option value="2013.Haziran">2013 / Haziran</option>
+
+    
+                                                        
+    <option value="2013.MayÄ±s">2013 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2013.Nisan">2013 / Nisan</option>
+
+    
+                                                        
+    <option value="2013.Mart">2013 / Mart</option>
+
+    
+                                                        
+    <option value="2013.Å�ubat">2013 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2013.Ocak">2013 / Ocak</option>
+
+    
+                                                        
+    <option value="2012.AralÄ±k">2012 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2012.KasÄ±m">2012 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2012.Ekim">2012 / Ekim</option>
+
+    
+                                                        
+    <option value="2012.EylÃ¼l">2012 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2012.AÄŸustos">2012 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2012.Temmuz">2012 / Temmuz</option>
+
+    
+                                                        
+    <option value="2012.Haziran">2012 / Haziran</option>
+
+    
+                                                        
+    <option value="2012.MayÄ±s">2012 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2012.Nisan">2012 / Nisan</option>
+
+    
+                                                        
+    <option value="2012.Mart">2012 / Mart</option>
+
+    
+                                                        
+    <option value="2012.Å�ubat">2012 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2012.Ocak">2012 / Ocak</option>
+
+    
+                                                        
+    <option value="2011.AralÄ±k">2011 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2011.KasÄ±m">2011 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2011.Ekim">2011 / Ekim</option>
+
+    
+                                                        
+    <option value="2011.EylÃ¼l">2011 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2011.AÄŸustos">2011 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2011.Temmuz">2011 / Temmuz</option>
+
+    
+                                                        
+    <option value="2011.Haziran">2011 / Haziran</option>
+
+    
+                                                        
+    <option value="2011.MayÄ±s">2011 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2011.Nisan">2011 / Nisan</option>
+
+    
+                                                        
+    <option value="2011.Mart">2011 / Mart</option>
+
+    
+                                                        
+    <option value="2011.Å�ubat">2011 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2011.Ocak">2011 / Ocak</option>
+
+    
+                                                        
+    <option value="2010.AralÄ±k">2010 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2010.KasÄ±m">2010 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2010.Ekim">2010 / Ekim</option>
+
+    
+                                                        
+    <option value="2010.EylÃ¼l">2010 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2010.AÄŸustos">2010 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2010.Temmuz">2010 / Temmuz</option>
+
+    
+                                                        
+    <option value="2010.Haziran">2010 / Haziran</option>
+
+    
+                                                        
+    <option value="2010.MayÄ±s">2010 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2010.Nisan">2010 / Nisan</option>
+
+    
+                                                        
+    <option value="2010.Mart">2010 / Mart</option>
+
+    
+                                                        
+    <option value="2010.Å�ubat">2010 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2010.Ocak">2010 / Ocak</option>
+
+    
+                                                        
+    <option value="2009.AralÄ±k">2009 / AralÄ±k</option>
+
+    
+                                                        
+    <option value="2009.KasÄ±m">2009 / KasÄ±m</option>
+
+    
+                                                        
+    <option value="2009.Ekim">2009 / Ekim</option>
+
+    
+                                                        
+    <option value="2009.EylÃ¼l">2009 / EylÃ¼l</option>
+
+    
+                                                        
+    <option value="2009.AÄŸustos">2009 / AÄŸustos</option>
+
+    
+                                                        
+    <option value="2009.Temmuz">2009 / Temmuz</option>
+
+    
+                                                        
+    <option value="2009.Haziran">2009 / Haziran</option>
+
+    
+                                                        
+    <option value="2009.MayÄ±s">2009 / MayÄ±s</option>
+
+    
+                                                        
+    <option value="2009.Nisan">2009 / Nisan</option>
+
+    
+                                                        
+    <option value="2009.Mart">2009 / Mart</option>
+
+    
+                                                        
+    <option value="2009.Å�ubat">2009 / Å�ubat</option>
+
+    
+                                                        
+    <option value="2009.Ocak">2009 / Ocak</option>
+
+    
+
+    </select>
+    <script> $('#MON').val('2026.MayÄ±s') </script>
+      	       
+
+    <select class="combo" 
+            xonchange ="document.form1.submit();" 
+            style="display:none;" 
+            id="WEE" 
+            name="WEE">
+
+    
+                                                        
+    <option value="2026.21_18.05.2026_21.05.2026">2026.21 - (18.05.2026 - 21.05.2026)  </option>
+
+    
+                                                        
+    <option value="2026.20_11.05.2026_15.05.2026">2026.20 - (11.05.2026 - 15.05.2026)  </option>
+
+    
+                                                        
+    <option value="2026.19_04.05.2026_08.05.2026">2026.19 - (04.05.2026 - 08.05.2026)  </option>
+
+    
+                                                        
+    <option value="2026.18_27.04.2026_30.04.2026">2026.18 - (27.04.2026 - 30.04.2026)  </option>
+
+    
+                                                        
+    <option value="2026.17_20.04.2026_24.04.2026">2026.17 - (20.04.2026 - 24.04.2026)  </option>
+
+    
+                                                        
+    <option value="2026.16_13.04.2026_17.04.2026">2026.16 - (13.04.2026 - 17.04.2026)  </option>
+
+    
+                                                        
+    <option value="2026.15_06.04.2026_10.04.2026">2026.15 - (06.04.2026 - 10.04.2026)  </option>
+
+    
+                                                        
+    <option value="2026.14_30.03.2026_03.04.2026">2026.14 - (30.03.2026 - 03.04.2026)  </option>
+
+    
+                                                        
+    <option value="2026.13_23.03.2026_27.03.2026">2026.13 - (23.03.2026 - 27.03.2026)  </option>
+
+    
+                                                        
+    <option value="2026.12_16.03.2026_19.03.2026">2026.12 - (16.03.2026 - 19.03.2026)  </option>
+
+    
+                                                        
+    <option value="2026.11_09.03.2026_13.03.2026">2026.11 - (09.03.2026 - 13.03.2026)  </option>
+
+    
+                                                        
+    <option value="2026.10_02.03.2026_06.03.2026">2026.10 - (02.03.2026 - 06.03.2026)  </option>
+
+    
+                                                        
+    <option value="2026.09_23.02.2026_27.02.2026">2026.09 - (23.02.2026 - 27.02.2026)  </option>
+
+    
+                                                        
+    <option value="2026.08_16.02.2026_20.02.2026">2026.08 - (16.02.2026 - 20.02.2026)  </option>
+
+    
+                                                        
+    <option value="2026.07_09.02.2026_13.02.2026">2026.07 - (09.02.2026 - 13.02.2026)  </option>
+
+    
+                                                        
+    <option value="2026.06_02.02.2026_06.02.2026">2026.06 - (02.02.2026 - 06.02.2026)  </option>
+
+    
+                                                        
+    <option value="2026.05_26.01.2026_30.01.2026">2026.05 - (26.01.2026 - 30.01.2026)  </option>
+
+    
+                                                        
+    <option value="2026.04_19.01.2026_23.01.2026">2026.04 - (19.01.2026 - 23.01.2026)  </option>
+
+    
+                                                        
+    <option value="2026.03_12.01.2026_16.01.2026">2026.03 - (12.01.2026 - 16.01.2026)  </option>
+
+    
+                                                        
+    <option value="2026.02_05.01.2026_09.01.2026">2026.02 - (05.01.2026 - 09.01.2026)  </option>
+
+    
+                                                        
+    <option value="2026.01_02.01.2026_02.01.2026">2026.01 - (02.01.2026 - 02.01.2026)  </option>
+
+    
+                                                        
+    <option value="2025.53_29.12.2025_31.12.2025">2025.53 - (29.12.2025 - 31.12.2025)  </option>
+
+    
+                                                        
+    <option value="2025.52_22.12.2025_26.12.2025">2025.52 - (22.12.2025 - 26.12.2025)  </option>
+
+    
+                                                        
+    <option value="2025.51_15.12.2025_19.12.2025">2025.51 - (15.12.2025 - 19.12.2025)  </option>
+
+    
+                                                        
+    <option value="2025.50_08.12.2025_12.12.2025">2025.50 - (08.12.2025 - 12.12.2025)  </option>
+
+    
+                                                        
+    <option value="2025.49_01.12.2025_05.12.2025">2025.49 - (01.12.2025 - 05.12.2025)  </option>
+
+    
+                                                        
+    <option value="2025.48_24.11.2025_28.11.2025">2025.48 - (24.11.2025 - 28.11.2025)  </option>
+
+    
+                                                        
+    <option value="2025.47_17.11.2025_21.11.2025">2025.47 - (17.11.2025 - 21.11.2025)  </option>
+
+    
+                                                        
+    <option value="2025.46_10.11.2025_14.11.2025">2025.46 - (10.11.2025 - 14.11.2025)  </option>
+
+    
+                                                        
+    <option value="2025.45_03.11.2025_07.11.2025">2025.45 - (03.11.2025 - 07.11.2025)  </option>
+
+    
+                                                        
+    <option value="2025.44_27.10.2025_31.10.2025">2025.44 - (27.10.2025 - 31.10.2025)  </option>
+
+    
+                                                        
+    <option value="2025.43_20.10.2025_24.10.2025">2025.43 - (20.10.2025 - 24.10.2025)  </option>
+
+    
+                                                        
+    <option value="2025.42_13.10.2025_17.10.2025">2025.42 - (13.10.2025 - 17.10.2025)  </option>
+
+    
+                                                        
+    <option value="2025.41_06.10.2025_10.10.2025">2025.41 - (06.10.2025 - 10.10.2025)  </option>
+
+    
+                                                        
+    <option value="2025.40_29.09.2025_03.10.2025">2025.40 - (29.09.2025 - 03.10.2025)  </option>
+
+    
+                                                        
+    <option value="2025.39_22.09.2025_26.09.2025">2025.39 - (22.09.2025 - 26.09.2025)  </option>
+
+    
+                                                        
+    <option value="2025.38_15.09.2025_19.09.2025">2025.38 - (15.09.2025 - 19.09.2025)  </option>
+
+    
+                                                        
+    <option value="2025.37_08.09.2025_12.09.2025">2025.37 - (08.09.2025 - 12.09.2025)  </option>
+
+    
+                                                        
+    <option value="2025.36_01.09.2025_05.09.2025">2025.36 - (01.09.2025 - 05.09.2025)  </option>
+
+    
+                                                        
+    <option value="2025.35_25.08.2025_29.08.2025">2025.35 - (25.08.2025 - 29.08.2025)  </option>
+
+    
+                                                        
+    <option value="2025.34_18.08.2025_22.08.2025">2025.34 - (18.08.2025 - 22.08.2025)  </option>
+
+    
+                                                        
+    <option value="2025.33_11.08.2025_15.08.2025">2025.33 - (11.08.2025 - 15.08.2025)  </option>
+
+    
+                                                        
+    <option value="2025.32_04.08.2025_08.08.2025">2025.32 - (04.08.2025 - 08.08.2025)  </option>
+
+    
+                                                        
+    <option value="2025.31_28.07.2025_01.08.2025">2025.31 - (28.07.2025 - 01.08.2025)  </option>
+
+    
+                                                        
+    <option value="2025.30_21.07.2025_25.07.2025">2025.30 - (21.07.2025 - 25.07.2025)  </option>
+
+    
+                                                        
+    <option value="2025.29_14.07.2025_18.07.2025">2025.29 - (14.07.2025 - 18.07.2025)  </option>
+
+    
+                                                        
+    <option value="2025.28_07.07.2025_11.07.2025">2025.28 - (07.07.2025 - 11.07.2025)  </option>
+
+    
+                                                        
+    <option value="2025.27_30.06.2025_04.07.2025">2025.27 - (30.06.2025 - 04.07.2025)  </option>
+
+    
+                                                        
+    <option value="2025.26_23.06.2025_27.06.2025">2025.26 - (23.06.2025 - 27.06.2025)  </option>
+
+    
+                                                        
+    <option value="2025.25_16.06.2025_20.06.2025">2025.25 - (16.06.2025 - 20.06.2025)  </option>
+
+    
+                                                        
+    <option value="2025.24_10.06.2025_13.06.2025">2025.24 - (10.06.2025 - 13.06.2025)  </option>
+
+    
+                                                        
+    <option value="2025.23_02.06.2025_05.06.2025">2025.23 - (02.06.2025 - 05.06.2025)  </option>
+
+    
+                                                        
+    <option value="2025.22_26.05.2025_30.05.2025">2025.22 - (26.05.2025 - 30.05.2025)  </option>
+
+    
+                                                        
+    <option value="2025.21_20.05.2025_23.05.2025">2025.21 - (20.05.2025 - 23.05.2025)  </option>
+
+    
+                                                        
+    <option value="2025.20_12.05.2025_16.05.2025">2025.20 - (12.05.2025 - 16.05.2025)  </option>
+
+    
+                                                        
+    <option value="2025.19_05.05.2025_09.05.2025">2025.19 - (05.05.2025 - 09.05.2025)  </option>
+
+    
+                                                        
+    <option value="2025.18_28.04.2025_02.05.2025">2025.18 - (28.04.2025 - 02.05.2025)  </option>
+
+    
+                                                        
+    <option value="2025.17_21.04.2025_25.04.2025">2025.17 - (21.04.2025 - 25.04.2025)  </option>
+
+    
+                                                        
+    <option value="2025.16_14.04.2025_18.04.2025">2025.16 - (14.04.2025 - 18.04.2025)  </option>
+
+    
+                                                        
+    <option value="2025.15_07.04.2025_11.04.2025">2025.15 - (07.04.2025 - 11.04.2025)  </option>
+
+    
+
+    </select>
+    <script> $('#WEE').val('2026.21_18.05.2026_21.05.2026') </script>
+      		
+    <select class="combo" 
+            xonchange ="document.form1.submit();" 
+            id="LANG" 
+            style="display:none;"
+            name="LANG">
+            <option value="TR" selected>TÃ¼rkÃ§e</option>
+            <option value="EN">Ä°ngilizce</option>
+    </select>
+    <script> $('#LANG').val('TR') </script>
+
+    <img class="crsr rimg" 
+        src="../../images/refresh_icon_white.png"
+        align="absmiddle" 
+        width="34" 
+        onclick="$('#ldn').show();document.form1.submit();">    	
+
+    <img class="crsr rimg pdf" 
+        src="../../images/pdf-104-white.png"
+        align="absmiddle" 
+        width="34" 
+        onclick="window.open('./Bulten/Bulten_Export.aspx?EXP=PDF','_blank')">    	
+
+    <img class="crsr rimg xls" 
+        src="../../images/excel-102-white2.png"
+        align="absmiddle" 
+        width="34" 
+        onclick="window.open('./Bulten/Bulten_Export.aspx?EXP=XLS','_blank')">    	
+
+</td>
+</tr>
+
+<tr style="height:10px;">
+    <td align="center" colspan="8"></td>
+</tr>
+
+<!--
+<tr class="thth">
+
+    <td style="text-align:left;">Grup / SÄ±nÄ±f / ÃœrÃ¼n Cinsi</td>
+    <td>En Az FiyatÄ±</td>
+    <td>En Ã‡ok FiyatÄ±</td>
+    <td>Ortalama FiyatÄ±</td>
+    <td>Ä°ÅŸlem MiktarÄ±</td>
+    <td>Ä°ÅŸlem TutarÄ±</td>
+    <td>SatÄ±ÅŸ Å�ekli</td>
+    <td>Ä°ÅŸlem Adedi</td>
+
+</tr>
+<tr style="height:10px;">		
+    <td align="center" colspan="8"></td>
+</tr>
+-->
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    HUBUBATLAR</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    HUBUBATLAR</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">PÄ°RÄ°NÃ‡
+    </td>
+    <td>28,00</td>                            											
+    <td>75,77</td>
+    <td>32,35</td>                            											
+    <td>3.320,00&nbsp;KG</td>
+    <td>107.408,00</td>
+    <td>HTS</td>
+    <td>4</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">HUBUBATLAR</td>                             
+    <td class="at">32,35</td>
+    <td class="at pd24">3.320,00</td>
+    <td class="at">107.408,00</td>
+    <td class="at" ></td>
+    <td class="at" colspan="2">4</td>
+                    	
+</tr>                              
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">HUBUBATLAR</td>                             
+    <td class="at pd24">3.320,00</td>
+    <td class="at">107.408,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">4</td>
+                    	
+</tr>                              
+
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    HUBUBAT MAMÃœLLERÄ°</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    HUBUBAT MAMÃœLLERÄ°</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">BUÄ�DAY UNU
+    </td>
+    <td>18,81</td>                            											
+    <td>33,60</td>
+    <td>24,07</td>                            											
+    <td>1.859.145,00&nbsp;KG</td>
+    <td>44.741.497,00</td>
+    <td>HTS</td>
+    <td>45</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">BULGUR
+    </td>
+    <td>30,00</td>                            											
+    <td>66,00</td>
+    <td>64,84</td>                            											
+    <td>3.100,00&nbsp;KG</td>
+    <td>201.000,00</td>
+    <td>HTS</td>
+    <td>2</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">MAKARNA
+    </td>
+    <td>30,00</td>                            											
+    <td>30,00</td>
+    <td>30,00</td>                            											
+    <td>500,00&nbsp;KG</td>
+    <td>15.000,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">HUBUBAT MAMÃœLLERÄ°</td>                             
+    <td class="at">24,14</td>
+    <td class="at pd24">1.862.745,00</td>
+    <td class="at">44.957.497,00</td>
+    <td class="at" ></td>
+    <td class="at" colspan="2">48</td>
+                    	
+</tr>                              
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">HUBUBAT MAMÃœLLERÄ°</td>                             
+    <td class="at pd24">1.862.745,00</td>
+    <td class="at">44.957.497,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">48</td>
+                    	
+</tr>                              
+
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    BAKLÄ°YAT MAMÃœLLERÄ°</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    BAKLÄ°YAT MAMÃœLLERÄ°</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">KIRMIZI MERCÄ°MEK
+    </td>
+    <td>30,00</td>                            											
+    <td>30,00</td>
+    <td>30,00</td>                            											
+    <td>400,00&nbsp;KG</td>
+    <td>12.000,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">KURU FASULYE
+    </td>
+    <td>90,00</td>                            											
+    <td>118,13</td>
+    <td>95,59</td>                            											
+    <td>330,00&nbsp;KG</td>
+    <td>31.544,00</td>
+    <td>HTS</td>
+    <td>3</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">NOHUT
+    </td>
+    <td>88,58</td>                            											
+    <td>88,58</td>
+    <td>88,58</td>                            											
+    <td>65,00&nbsp;KG</td>
+    <td>5.758,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">YEÅ�Ä°L MERCÄ°MEK
+    </td>
+    <td>60,00</td>                            											
+    <td>60,00</td>
+    <td>60,00</td>                            											
+    <td>300,00&nbsp;KG</td>
+    <td>18.000,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">BAKLÄ°YAT MAMÃœLLERÄ°</td>                             
+    <td class="at">61,46</td>
+    <td class="at pd24">1.095,00</td>
+    <td class="at">67.302,00</td>
+    <td class="at" ></td>
+    <td class="at" colspan="2">6</td>
+                    	
+</tr>                              
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">BAKLÄ°YAT MAMÃœLLERÄ°</td>                             
+    <td class="at pd24">1.095,00</td>
+    <td class="at">67.302,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">6</td>
+                    	
+</tr>                              
+
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    Ã‡EÅ�Ä°TLÄ° GIDA MADDELERÄ°</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    HAYVANSAL GIDA MADDELERÄ°</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">YUMURTA 
+    </td>
+    <td>5,70</td>                            											
+    <td>5,70</td>
+    <td>5,70</td>                            											
+    <td>24.000,00&nbsp;ADET</td>
+    <td>136.800,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">HAYVANSAL GIDA MADDELERÄ°</td>                             
+    <td class="at">5,70</td>
+    <td class="at pd24">24.000,00</td>
+    <td class="at">136.800,00</td>
+    <td class="at" ></td>
+    <td class="at" colspan="2">1</td>
+                    	
+</tr>                              
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">Ã‡EÅ�Ä°TLÄ° GIDA MADDELERÄ°</td>                             
+    <td class="at pd24">24.000,00</td>
+    <td class="at">136.800,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">1</td>
+                    	
+</tr>                              
+
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    Ã‡EÅ�Ä°TLÄ° MADDELER</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    Ã‡EÅ�Ä°TLÄ° MADDELER</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">YEM (Ã‡Ä°FT TIRNAKLI)
+    </td>
+    <td>6,00</td>                            											
+    <td>18,46</td>
+    <td>15,26</td>                            											
+    <td>601.120,00&nbsp;KG</td>
+    <td>9.171.808,00</td>
+    <td>HTS</td>
+    <td>15</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">Ã‡EÅ�Ä°TLÄ° MADDELER</td>                             
+    <td class="at">15,26</td>
+    <td class="at pd24">601.120,00</td>
+    <td class="at">9.171.808,00</td>
+    <td class="at" ></td>
+    <td class="at" colspan="2">15</td>
+                    	
+</tr>                              
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">Ã‡EÅ�Ä°TLÄ° MADDELER</td>                             
+    <td class="at pd24">601.120,00</td>
+    <td class="at">9.171.808,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">15</td>
+                    	
+</tr>                              
+
+                                                            
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    KOTA DIÅ�I MADDELER</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    KOTA DIÅ�I MADDELER</td>
+
+    <td class="msd">En&nbsp;Az&nbsp;FiyatÄ±</td>
+    <td class="msd">En&nbsp;Ã‡ok&nbsp;FiyatÄ±</td>
+    <td class="msd">Ortalama&nbsp;FiyatÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;MiktarÄ±</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;TutarÄ±</td>
+    <td class="msd">SatÄ±ÅŸ&nbsp;Å�ekli</td>
+    <td class="msd">Ä°ÅŸlem&nbsp;Adedi</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">AYÃ‡EKÄ°RDEÄ�Ä°
+    </td>
+    <td>66,75</td>                            											
+    <td>67,75</td>
+    <td>67,24</td>                            											
+    <td>25.900,00&nbsp;KG</td>
+    <td>1.741.625,00</td>
+    <td>HMS</td>
+    <td>4</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">AYÃ‡EKÄ°RDEÄ�Ä°
+    </td>
+    <td>70,20</td>                            											
+    <td>78,33</td>
+    <td>74,29</td>                            											
+    <td>485,00&nbsp;KG</td>
+    <td>36.029,00</td>
+    <td>HTS</td>
+    <td>4</td>
+
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        align="left">Å�EHRÄ°YE
+    </td>
+    <td>36,00</td>                            											
+    <td>36,00</td>
+    <td>36,00</td>                            											
+    <td>1.000,00&nbsp;KG</td>
+    <td>36.000,00</td>
+    <td>HTS</td>
+    <td>1</td>
+
+</tr>
+                                        
+
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:limegreen;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="2"
+        align="right">KOTA DIÅ�I MADDELER</td>                             
+    <td class="at">66,23</td>
+    <td class="at pd24">27.385,00</td>
+    <td class="at">1.813.654,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">9</td>
+                    	
+</tr>                              
+                                                           
+
+<tr height="20" 
+    align="right"
+    valign="top" 
+    style="color:orange;" >  
+    <td width="35%"></td>                      
+    <td width="30%"
+        class="at"
+        colspan="3"
+        align="right">KOTA DIÅ�I MADDELER</td>                             
+    <td class="at pd24">27.385,00</td>
+    <td class="at">1.813.654,00</td>
+    <td class="at"></td>
+    <td class="at" colspan="2">9</td>
+                    	
+</tr>                              
+
+
+<tr height="40" 
+    align="right"
+    style="background-color:#333;" >
+                        
+    <td width="70%"
+        colspan="4"
+        class="gt" 
+        align="center">GENEL TOPLAM</td>                             
+    <td class="gt pd24" >2.519.665,00</td>
+    <td class="gt">56.254.469,00</td>
+    <td class="gt"></td>
+    <td class="gt">83</td>
+                    	
+</tr>      
+
+
+
+        </table>
+
+    </form>
+
+
+    <script>
+    
+    capcontrol();
+    var capno = 'D';
+
+    $('#XLS,#PDF').show();
+
+
+    function mizanexport(exp) {
+
+        var capno = $('#CAPNO').val();
+        window.open('Export.Asp?EXP=' + exp, '_self')
+
+    }
+
+    function capcontrol() {
+
+        $('#BDATE,#EDATE,#YEA,#MON,#WEE,#XLS,#PDF').hide();
+
+        var capno = document.getElementById('CAPNO').value;
+
+        if (capno == 'D') {
+            $('#EDATE').val($('#BDATE').val())
+            $('#EDATE').hide()
+            $('#BDATE').show();
+            $('#CNAME').html('GÃ¼nlÃ¼k Borsa BÃ¼teni');
+        }
+
+        if (capno == 'Y') {
+            $('#YEA').show()
+            $('#CNAME').html('HaftalÄ±k Borsa BÃ¼lteni');
+        }
+
+        if (capno == 'M') {
+            $('#MON').show()
+            $('#CNAME').html('AylÄ±k Borsa BÃ¼teni');
+        }
+
+        if (capno == 'W') {
+            $('#WEE').show()
+            $('#CNAME').html('YÄ±llÄ±k Borsa BÃ¼teni');
+        }
+
+        if (capno == 'Z') {
+            $('#EDATE').show()
+            $('#BDATE').show();
+            $('#CNAME').html('Ä°ki Tarih ArasÄ± Borsa BÃ¼lteni');
+        }
+
+    }
+
+</script>
+
+</div>
+
+</div>
+
+    
+</body>
+
+</html>
+
+
+
+    <script language="javascript" type="text/javascript">
+
+        $.getJSON('https://api.ipify.org?format=json', function(data) {
+
+            var dataip=data.ip;            
+            var borsaadi='ERZURUM';
+            $('#sip').load('./data.aspx', {'SESSIONIP': dataip,'BORSAADI':borsaadi},function(){
+                $('#sip').html(dataip);
+            });
+
+        });
+    </script>
+
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+

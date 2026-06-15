@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
-import { stats } from "../data/market";
+import { usePublicStats } from "../hooks/usePublicApi";
 import { useReveal } from "../hooks/useReveal";
 import "./QuickStats.css";
 
 export default function QuickStats() {
   const ref = useReveal<HTMLDivElement>();
+  const headRef = useReveal<HTMLDivElement>();
   const [active, setActive] = useState(false);
+  const { data: statsData, isSuccess } = usePublicStats();
+  const stats = statsData ?? [];
 
   useEffect(() => {
     const el = ref.current;
@@ -22,10 +25,12 @@ export default function QuickStats() {
     return () => obs.disconnect();
   }, [ref]);
 
+  if (isSuccess && stats.length === 0) return null;
+
   return (
     <section className="qstats">
       <div className="container">
-        <div className="qstats__head reveal" ref={useReveal<HTMLDivElement>()}>
+        <div className="qstats__head reveal" ref={headRef}>
           <span className="eyebrow">Güven Göstergeleri · 2026</span>
           <h2>
             Kurumu rakamlarla okuyun;<br />
@@ -38,7 +43,7 @@ export default function QuickStats() {
             <article className="qstat card" key={s.label}>
               <span className="qstat__num mono">{String(i + 1).padStart(2, "0")}</span>
               <div className="qstat__body">
-                <Counter value={s.value} suffix={s.suffix} start={active} />
+                <Counter value={Number(s.value) || 0} suffix={s.suffix ?? ""} start={active} />
                 <h3 className="qstat__label">{s.label}</h3>
                 <p className="qstat__note mono">{s.note}</p>
               </div>

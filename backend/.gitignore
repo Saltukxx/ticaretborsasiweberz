@@ -1,0 +1,11 @@
+# Dependencies
+node_modules/
+dist/
+
+# Local env (never commit secrets)
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*

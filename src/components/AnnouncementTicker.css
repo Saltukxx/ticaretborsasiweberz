@@ -1,74 +1,183 @@
 .ann {
+
   padding: 0;
+
   background:
+
     linear-gradient(90deg, rgba(37, 138, 74, 0.08), rgba(255, 255, 255, 0.8) 44%, rgba(29, 78, 216, 0.05));
+
   border-top: 1px solid rgba(37, 138, 74, 0.16);
+
   border-bottom: 1px solid rgba(11, 21, 48, 0.08);
+
 }
+
 .ann__inner {
+
   display: grid;
+
   grid-template-columns: auto 1fr auto;
+
   align-items: center;
+
   gap: 28px;
-  padding: 16px 0;
+
+  padding: 10px 0;
+
 }
+
 .ann__label {
+
   display: inline-flex;
+
   align-items: center;
+
   gap: 12px;
+
   color: var(--c-green-700);
+
   font-size: 11px;
+
   letter-spacing: 0.32em;
+
   text-transform: uppercase;
+
   white-space: nowrap;
+
 }
+
 .ann__dot {
+
   width: 8px;
+
   height: 8px;
+
   border-radius: 50%;
+
   background: var(--c-green-500);
+
   box-shadow: 0 0 12px rgba(47, 165, 90, 0.45);
+
   animation: pulseDot 1.8s var(--ease-out) infinite;
+
 }
+
 .ann__viewport {
+
   overflow: hidden;
+
   position: relative;
+
   mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+
 }
+
 .ann__track {
+
   display: inline-flex;
+
   align-items: center;
+
   gap: 38px;
+
   white-space: nowrap;
+
   animation: scrollX 80s linear infinite;
+
 }
+
 .ann__item {
+
   display: inline-flex;
+
   align-items: center;
+
   gap: 14px;
+
   color: var(--c-navy-900);
+
   font-size: 14px;
+
   letter-spacing: 0.01em;
+
 }
+
 .ann__marker {
+
   color: var(--c-green-600);
+
   font-size: 11px;
+
   letter-spacing: 0.3em;
+
 }
+
 .ann__sep {
+
   color: rgba(11, 21, 48, 0.18);
+
   font-size: 10px;
+
 }
+
 .ann__cta {
+
   font-size: 11px;
+
   letter-spacing: 0.32em;
+
   text-transform: uppercase;
+
   color: var(--c-green-700);
+
   white-space: nowrap;
+
 }
+
 .ann__cta:hover { color: var(--c-navy-900); }
 
+
+
 @media (max-width: 900px) {
+
   .ann__inner { grid-template-columns: auto 1fr; }
+
   .ann__cta { display: none; }
+
 }
+
+
+
+@media (max-width: 640px) {
+
+  .ann__inner {
+
+    grid-template-columns: 1fr;
+
+    gap: 12px;
+
+    padding: 10px 0;
+
+  }
+
+
+
+  .ann__label {
+
+    justify-content: center;
+
+    letter-spacing: 0.22em;
+
+  }
+
+
+
+  .ann__item {
+
+    font-size: 13px;
+
+  }
+
+}
+
+

@@ -1,8 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSiteContact } from "../hooks/usePublicApi";
+import { ApiError, subscribeNewsletter, type NewsletterFrequency } from "../lib/publicApi";
+import { safeHref } from "../lib/safeHref";
 import "./Footer.css";
 
 const NEWSLETTER_FREQUENCIES = ["Günlük", "Haftalık", "Aylık"] as const;
+
+const FREQ_TO_API: Record<(typeof NEWSLETTER_FREQUENCIES)[number], NewsletterFrequency> = {
+  Günlük: "daily",
+  Haftalık: "weekly",
+  Aylık: "monthly",
+};
 
 function MountainSilhouette() {
   return (
@@ -105,6 +114,7 @@ function IconSun() {
 }
 
 export default function Footer() {
+  const { data: contact } = useSiteContact();
   const footerRef = useRef<HTMLElement>(null);
   const clockRef = useRef<number | undefined>(undefined);
   const subTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -113,6 +123,8 @@ export default function Footer() {
   const [now, setNow] = useState(() => new Date());
   const [newsletterFreq, setNewsletterFreq] = useState<(typeof NEWSLETTER_FREQUENCIES)[number]>("Günlük");
   const [subscribed, setSubscribed] = useState(false);
+  const [subscribeError, setSubscribeError] = useState<string | null>(null);
+  const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
     clockRef.current = window.setInterval(() => setNow(new Date()), 1000);
@@ -136,14 +148,33 @@ export default function Footer() {
     [motionQuery]
   );
 
-  const onSubscribe = (e: React.FormEvent<HTMLFormElement>) => {
+  const onSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (subTimerRef.current) window.clearTimeout(subTimerRef.current);
-    setSubscribed(true);
-    subTimerRef.current = window.setTimeout(() => {
-      setSubscribed(false);
-      subTimerRef.current = undefined;
-    }, 4500);
+    setSubscribeError(null);
+    const form = e.currentTarget;
+    const fd = new FormData(form);
+    const email = String(fd.get("email") ?? "").trim();
+    if (!email) return;
+    setSubscribing(true);
+    try {
+      await subscribeNewsletter({
+        email,
+        frequency: FREQ_TO_API[newsletterFreq],
+      });
+      setSubscribed(true);
+      form.reset();
+      subTimerRef.current = window.setTimeout(() => {
+        setSubscribed(false);
+        subTimerRef.current = undefined;
+      }, 4500);
+    } catch (err) {
+      setSubscribeError(
+        err instanceof ApiError ? err.message : "Abonelik kaydedilemedi.",
+      );
+    } finally {
+      setSubscribing(false);
+    }
   };
 
   const timeStr = now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -232,9 +263,6 @@ export default function Footer() {
                 <Link to="/kurumsal">Kurumsal</Link>
               </li>
               <li>
-                <Link to="/piyasa-verileri">Piyasa Verileri</Link>
-              </li>
-              <li>
                 <Link to="/fiyat-bulteni">Fiyat Bülteni</Link>
               </li>
             </ul>
@@ -278,27 +306,40 @@ export default function Footer() {
             <ul>
               <li>
                 <span className="mono">Adres</span>
-                Muratpaşa Mah. Cemal Gürsel Cad. No: 13
-                <br />
-                Yakutiye / Erzurum
+                {contact?.address
+                  ? contact.address.split("\n").map((line, i) => (
+                      <span key={line}>
+                        {i > 0 && <br />}
+                        {line}
+                      </span>
+                    ))
+                  : "—"}
               </li>
               <li>
                 <span className="mono">Telefon</span>
-                <a href="tel:+904422345678">+90 442 234 56 78</a>
+                {contact?.phone ? (
+                  <a href={`tel:${contact.phone.replace(/\s/g, "")}`}>{contact.phone}</a>
+                ) : (
+                  "—"
+                )}
               </li>
               <li>
                 <span className="mono">E-posta</span>
-                <a href="mailto:bilgi@etb.org.tr">bilgi@etb.org.tr</a>
+                {contact?.emailPrimary ? (
+                  <a href={`mailto:${contact.emailPrimary}`}>{contact.emailPrimary}</a>
+                ) : (
+                  "—"
+                )}
               </li>
               <li>
                 <span className="mono">Çalışma Saatleri</span>
-                Pazartesi — Cuma · 08:30 — 17:30
+                {contact?.hours?.replace(/\n/g, " · ") ?? "—"}
               </li>
             </ul>
           </div>
         </div>
 
-        <section className="footer__news-band" aria-labelledby="footer-news-heading">
+        <section id="newsletter" className="footer__news-band" aria-labelledby="footer-news-heading">
           <div className="footer__news-band-inner">
             <div className="footer__news-intro">
               <h3 id="footer-news-heading" className="footer__news-title">
@@ -323,11 +364,16 @@ export default function Footer() {
               <label htmlFor="footer-email" className="visually-hidden">
                 E-posta adresiniz
               </label>
-              <input id="footer-email" name="email" type="email" required placeholder="E-posta adresiniz" autoComplete="email" />
-              <button className="btn btn-primary" type="submit">
-                Abone Ol
+              <input id="footer-email" name="email" type="email" required placeholder="E-posta adresiniz" autoComplete="email" disabled={subscribing} />
+              <button className="btn btn-primary" type="submit" disabled={subscribing}>
+                {subscribing ? "Kaydediliyor…" : "Abone Ol"}
               </button>
             </form>
+            {subscribeError && (
+              <p className="footer__news-error" role="alert">
+                {subscribeError}
+              </p>
+            )}
           </div>
           <div className={`footer__news-done ${subscribed ? "is-visible" : ""}`} role="status" aria-live="polite">
             <IconCheck />
@@ -337,18 +383,26 @@ export default function Footer() {
 
         <div className="footer__trust">
           <div className="footer__social">
-            <a href="#" className="footer__social-link" aria-label="LinkedIn">
-              <IconLinkedIn />
-            </a>
-            <a href="#" className="footer__social-link" aria-label="X">
-              <IconX />
-            </a>
-            <a href="#" className="footer__social-link" aria-label="YouTube">
-              <IconYouTube />
-            </a>
-            <a href="#" className="footer__social-link" aria-label="Instagram">
-              <IconInstagram />
-            </a>
+            {contact?.socialLinkedin && (
+              <a href={safeHref(contact.socialLinkedin)} className="footer__social-link" aria-label="LinkedIn" target="_blank" rel="noopener noreferrer">
+                <IconLinkedIn />
+              </a>
+            )}
+            {contact?.socialX && (
+              <a href={safeHref(contact.socialX)} className="footer__social-link" aria-label="X" target="_blank" rel="noopener noreferrer">
+                <IconX />
+              </a>
+            )}
+            {contact?.socialYoutube && (
+              <a href={safeHref(contact.socialYoutube)} className="footer__social-link" aria-label="YouTube" target="_blank" rel="noopener noreferrer">
+                <IconYouTube />
+              </a>
+            )}
+            {contact?.socialInstagram && (
+              <a href={safeHref(contact.socialInstagram)} className="footer__social-link" aria-label="Instagram" target="_blank" rel="noopener noreferrer">
+                <IconInstagram />
+              </a>
+            )}
           </div>
           <ul className="footer__badges">
             <li className="footer__badge mono">TOBB Akredite</li>
@@ -364,24 +418,24 @@ export default function Footer() {
               © {new Date().getFullYear()} Erzurum Ticaret Borsası · Tüm hakları saklıdır.
             </span>
             <nav className="footer__legal" aria-label="Yasal">
-              <Link to="/iletisim">KVKK Aydınlatma</Link>
+              <Link to="/kvkk">KVKK</Link>
               <span className="footer__legal-sep" aria-hidden>
                 ·
               </span>
-              <Link to="/iletisim">Gizlilik</Link>
+              <Link to="/kvkk/aydinlatma-internet">KVKK Aydınlatma</Link>
               <span className="footer__legal-sep" aria-hidden>
                 ·
               </span>
-              <Link to="/iletisim">Çerez</Link>
+              <Link to="/kvkk/gizlilik-cerez">Gizlilik</Link>
               <span className="footer__legal-sep" aria-hidden>
                 ·
               </span>
-              <Link to="/iletisim">Erişilebilirlik</Link>
+              <Link to="/kvkk/gizlilik-cerez">Çerez</Link>
+              <span className="footer__legal-sep" aria-hidden>
+                ·
+              </span>
+              <Link to="/yasal/erisilebilirlik">Erişilebilirlik</Link>
             </nav>
-          </div>
-          <div className="footer__meta-center mono">
-            <span className="footer__pulse" aria-hidden />
-            Sistem durumu: Çevrimiçi
           </div>
           <div className="footer__meta-right">
             <span className="mono footer__version">v2.0 · Son güncelleme 14 Mayıs 2026</span>
@@ -389,6 +443,28 @@ export default function Footer() {
               ↑
             </button>
           </div>
+        </div>
+
+        <div className="footer__powered">
+          <a
+            href="https://gbsoftt.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer__powered-link"
+            aria-label="GBSoft tarafından geliştirildi — gbsoftt.com"
+          >
+            <span className="footer__powered-label mono">Powered by</span>
+            <span className="footer__powered-brand">GBSoft</span>
+            <svg className="footer__powered-icon" viewBox="0 0 24 24" width="12" height="12" aria-hidden fill="none">
+              <path
+                d="M7 17L17 7M17 7H9M17 7V15"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
         </div>
       </div>
     </footer>

@@ -1,0 +1,239 @@
+.pulse-bar {
+  position: relative;
+  border-top: 1px solid rgba(11, 21, 48, 0.08);
+  border-bottom: 1px solid rgba(11, 21, 48, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(10px);
+}
+
+.pulse-bar--agenda {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.94), rgba(247, 252, 248, 0.9)),
+    radial-gradient(circle at 0% 50%, rgba(37, 138, 74, 0.08), transparent 48%);
+}
+
+.pulse-bar--market {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.92), rgba(247, 248, 244, 0.88)),
+    radial-gradient(circle at 100% 50%, rgba(29, 78, 216, 0.06), transparent 42%);
+}
+
+.pulse-bar__inner {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(14px, 2vw, 22px);
+  min-height: 0;
+  padding: 4px 0;
+}
+
+.pulse-bar__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
+  color: var(--c-green-700);
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.pulse-bar__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-green-500);
+  box-shadow: 0 0 14px rgba(47, 165, 90, 0.42);
+  animation: pulseDot 1.8s var(--ease-out) infinite;
+}
+
+.pulse-bar--market .pulse-bar__dot {
+  background: var(--c-red-400);
+  box-shadow: 0 0 14px rgba(220, 74, 74, 0.44);
+}
+
+.pulse-bar__viewport {
+  overflow: hidden;
+  min-width: 0;
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+
+.pulse-bar__track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: clamp(28px, 4vw, 40px);
+  white-space: nowrap;
+  animation: pulseBarScroll var(--pulse-duration, 36s) linear infinite;
+}
+
+.pulse-bar__track--idle {
+  animation: none;
+}
+
+.pulse-bar__viewport--loading {
+  min-height: 24px;
+}
+
+.pulse-bar__loading {
+  color: var(--c-text-muted);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  opacity: 0.72;
+}
+
+.pulse-bar__viewport:hover .pulse-bar__track {
+  animation-play-state: paused;
+}
+
+.pulse-bar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--c-navy-900);
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.25s var(--ease-out);
+}
+
+a.pulse-bar__item:hover {
+  color: var(--c-green-700);
+}
+
+.pulse-bar__item::after {
+  content: "◆";
+  color: rgba(11, 21, 48, 0.16);
+  font-size: 9px;
+}
+
+.pulse-bar__cat {
+  color: var(--c-green-600);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.pulse-bar__code {
+  color: var(--c-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  max-width: 22ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pulse-bar__value {
+  font-size: 0.94rem;
+  font-weight: 500;
+}
+
+.pulse-bar__change {
+  padding: 4px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.pulse-bar__change.is-up {
+  color: var(--c-green-700);
+  background: rgba(47, 165, 90, 0.09);
+}
+
+.pulse-bar__change.is-down {
+  color: var(--c-red-400);
+  background: rgba(220, 74, 74, 0.09);
+}
+
+.pulse-bar__cta {
+  white-space: nowrap;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.pulse-bar__time {
+  color: var(--c-text-muted);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  white-space: nowrap;
+}
+
+@keyframes pulseBarScroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 820px) {
+  .pulse-bar__inner {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 4px 10px;
+    padding: 4px 0;
+    min-height: 0;
+  }
+
+  .pulse-bar__label {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+  }
+
+  .pulse-bar__cta,
+  .pulse-bar__time {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+  }
+
+  .pulse-bar__viewport {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    mask-image: linear-gradient(90deg, transparent, #000 2%, #000 98%, transparent);
+  }
+
+  .pulse-bar__track {
+    gap: 22px;
+  }
+
+  .pulse-bar__item {
+    font-size: 14px;
+    gap: 10px;
+  }
+
+  .pulse-bar__cat {
+    font-size: 9px;
+    letter-spacing: 0.16em;
+  }
+}
+
+@media (max-width: 420px) {
+  .pulse-bar__cta {
+    letter-spacing: 0.1em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-bar__dot,
+  .pulse-bar__track {
+    animation: none;
+  }
+
+  .pulse-bar__viewport {
+    overflow-x: auto;
+    mask-image: none;
+    scrollbar-width: thin;
+  }
+
+  .pulse-bar__track {
+    width: 100%;
+  }
+}

@@ -1,0 +1,877 @@
+
+
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+    <title>DataBank</title>
+    <meta charset="windows-1254">
+    <meta name="viewport" content="width=1200, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <style>
+
+    @viewport{
+        zoom: 1.0;
+        width: device-width;
+    }
+
+    * {
+        font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+    }
+    
+    body {
+        background-color: #111;
+        color: white;
+        width: 100%;
+    }
+    
+    select,
+    input {
+        background-color: #333;
+        color: white;
+        padding: 8px;
+    }
+    
+    ::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
+</style>
+
+</head>
+
+<body lang="tr">
+
+    
+
+<style>
+    #header {
+        position: fixed;
+        z-index: 2;
+        width: 100%;
+    }
+    
+    #kurumlogo {
+        width: 34px;
+        float: left;
+        margin-right: 10px;
+        margin-top: 4px;
+        border-radius:50%;
+    }
+    
+    #kurumname {
+        font-size: 30px;
+    }
+    
+    .headline {
+        background-color: #222;
+        padding: 4px;
+    }
+    
+    #ldn {
+        position: absolute;
+        margin-left:50px;
+        top: 14px;
+        width: 26px;
+        display: none;
+    }
+
+    #dtime{
+        font-size: 20px;
+        float: right;
+        padding-top:6px;
+        margin-right:10px;
+    }
+
+</style>
+<div id="header" class="headline">
+    <img id="kurumlogo" src="../../Logo/Erzurum_Png.png" />
+    <span id="kurumname">ERZURUM TÄ°CARET BORSASI</span>
+    <img id="ldn" src="../../Public/Loading/gray.gif">
+    <span id="dtime">21 MayÄ±s 2026 PerÅŸembe</span>
+    </div><style>
+    #leftmenu {
+        width: 150px;
+        float: left;
+        position: fixed;
+        margin-top: 50px;
+    }
+    
+    #leftmenu div:hover {
+        cursor: pointer;
+        background-color: #333;
+    }
+    
+    .leftmenu {
+        background-color: #222;
+        width: 150px;
+        height: 110px;
+        padding: 4px;
+        margin-top: 2px;
+        text-align: center;
+    }
+    
+    .center {
+        text-align: center;
+    }
+    
+    #canli {
+        background-color: yellow;
+        padding: 0px 4px;
+        margin-top: -40px;
+        margin-right: 10px;
+        float: right;
+        border-radius: 22px;
+        color: black;
+        font-weight: bold;
+        width: 50px;
+    }
+    
+    #home {
+        width: 45px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    #cotton {
+        width: 45px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    #bulten {
+        width: 45px;
+        margin: 15px 0px 10px 0px;
+    }
+    
+    #urunchart {
+        width: 45px;
+        margin: 15px 0px 10px 0px;
+    }
+    
+    #islem {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+
+    #verification {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+
+    #haber {
+        width: 55px;
+        margin: 10px 0px 10px 0px;
+    }
+    
+    .leftactive {
+        color: orange;
+        font-weight: bold;
+    }
+    
+    .arriwright {
+        width: 20px;
+        right: 0px;
+        margin: 4px;
+        position: absolute;    }
+    
+    .ctn {
+        position: relative;
+    }
+    
+    .arriwright {
+        display: none;
+    }
+
+    #sip {
+        width: 100%;
+        text-align: center;
+        padding: 20px 0px;
+        margin-top:2px;
+        color:gold;
+    }
+
+    #sip:hover {
+        cursor:default!important;
+        background-color: #111!important;
+    }
+</style>
+
+<div id="leftmenu">
+
+    <div id="mn0" class="leftmenu home" onclick="$('#ldn').show();window.open('./?lno=0','_self')">
+        <img id="home" src="../../Modules/iMages/home.png">
+        <img class="arriwright lno0" src="../../Modules/iMages/arrow-right.png"><br>Ana Sayfa
+    </div>
+
+    
+
+    <div id="mn2" class="leftmenu tescil" onclick="$('#ldn').show();window.open('./?lno=2','_self')">
+        <img id="bulten" src="../../Modules/iMages/ereport.png">
+        <img class="arriwright lno2" src="../../Modules/iMages/arrow-right.png"><br> Tescil BÃ¼ltenleri
+    </div>
+
+    <div id="mn3" class="leftmenu chart" onclick="$('#ldn').show();window.open('./?lno=3','_self')">
+        <img id="urunchart" src="../../Modules/iMages/ist_white.png">
+        <img class="arriwright lno3" src="../../Modules/iMages/arrow-right.png"><br> ÃœrÃ¼n Grafikleri
+    </div>
+
+    <div id="mn4" class="leftmenu volume" onclick="$('#ldn').show();window.open('./?lno=4','_self')">
+        <img id="islem" src="../../Modules/iMages/dashboard.png" style="width:65px;height:45px;margin-top:15px;">
+        <img class="arriwright lno4" src="../../Modules/iMages/arrow-right.png"><br> Ä°ÅŸlem Hacimleri
+    </div>
+
+    <div id="mn5" class="leftmenu volume" onclick="window.open('../../DocumentVerification/?','_blank')">
+        <img id="verification" src="../../Modules/iMages/kar1.png">
+        <img class="arriwright lno5" src="../../Modules/iMages/arrow-right.png"><br>Tescil DoÄŸrulama
+    </div>
+
+    <div id="sip"></div>
+
+</div>
+<script>
+    $('.lno0').show();
+    $('#mn0').addClass('leftactive');
+</script><style>
+    #contentmenu {
+        margin-left: 152px;
+        width:calc(100%-255px);
+        min-height:670px;
+        padding:58px 8px 8px 8px;     
+        margin-bottom:50px;
+
+    }
+</style>
+
+<div id="contentmenu">
+
+   <div style="padding:0px 10px;">
+
+    <style>
+    .sec_120_10 {
+        margin: 20px 0PX 10px 0PX;
+        width: 100%;
+        color: orange;
+        text-align: center;
+    }
+    
+    #form1 {
+        width: 100%;
+    }
+    
+    #form1 input,
+    select {
+        border: 1px solid #dddddd;
+        padding: 8px;
+        margin: 6px;
+        color: orange;
+        line-height: 20px!important;
+    }
+    
+    #form1 h2 {
+        color: orange;
+    }
+    
+    #form1 img {
+        margin-top: -5px;
+        padding: 5px;
+        width:50px;
+        background-color:#222;
+        border-radius:50%;
+    }
+    
+    #form1 img:hover {
+        background-color: #333;        
+    }
+    
+    .sec_120_10_img h4 {
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .margin-bottom-120 {
+        margin-bottom: 15px;
+    }
+    
+    .mg {
+        padding-left: 5px !important;
+        font-size: 14pt !important;
+        background: #3c3c3c;
+        color: orange;
+    }
+    
+    .ms {
+        padding-left: 35px !important;
+        font-size: 14pt !important;
+        background: #333;
+        color: limegreen;
+    }
+    
+    .msd {
+        padding-left: 35px !important;
+        font-size: 12px;
+        background: #333;
+        color: gold;
+        text-align: right;
+    }
+    
+    .msc {
+        text-align: center!important;
+    }
+    
+    .ma {
+        padding-left: 65px !important;
+    }
+    
+    .at {
+        border-top: 1px solid #555!important;
+        padding-bottom: 10px !important;
+        font-style: xitalic !important;
+    }
+    
+    .gt {
+        border-top: 1px solid red !important;
+        font-size: 12pt !important;
+    }
+    
+    .thth td {
+        padding: 8px;
+        border: 1px solid #dddddd!important;
+        margin-bottom: 10px;
+        text-align: center;
+        font-weight: bold;
+    }
+    
+    td {
+        border: 0 !important;
+    }
+    
+    .pd24 {
+        padding-right: 24px;
+    }
+    
+    .crsr:hover {
+        cursor: pointer;
+    }
+    
+    .rimg {
+        background-color: #333;
+    }
+    
+    td {
+        padding: 1px 8px;
+    }
+    
+    .bline:hover {
+        background-color: #444;
+        color: goldenrod;
+        cursor: pointer;
+    }
+    
+    .td1 {
+        color: orange;
+    }
+    
+    .td2 {
+        color: red;
+    }
+    
+    .td3 {
+        color: limegreen;
+    }
+    
+    .td4 {
+        color: yellow;
+    }
+</style>
+
+    <form id="form1" name="form1" method="POST" onsubmit="myFunction()" action="./?PID=">
+
+        <table style="width:100%;">
+
+            <tr>	
+	
+<td colspan="8" style="padding-left:0;">
+                        
+    <select class="combo" 
+        onchange ="$('#ldn').show();document.form1.submit();" 
+        id="HOMEYEAR" 
+        name="HOMEYEAR">
+    
+    <option value="2026">2026</option>
+    
+    <option value="2025">2025</option>
+    
+    <option value="2024">2024</option>
+    
+    <option value="2023">2023</option>
+    
+    <option value="2022">2022</option>
+    
+    <option value="2021">2021</option>
+    
+    <option value="2020">2020</option>
+    
+    <option value="2019">2019</option>
+    
+    <option value="2018">2018</option>
+    
+    <option value="2017">2017</option>
+    
+    <option value="2016">2016</option>
+    
+    <option value="2015">2015</option>
+    
+    <option value="2014">2014</option>
+    
+    <option value="2013">2013</option>
+    
+    <option value="2012">2012</option>
+    
+    <option value="2011">2011</option>
+    
+    <option value="2010">2010</option>
+    
+    <option value="2009">2009</option>
+    
+			    
+    </select>
+    <script> $('#HOMEYEAR').val('2026') </script>
+                 
+   <select class="combo" 
+        onchange ="$('#ldn').show();document.form1.submit();" 
+        id="HOMEGROUP" 
+        name="HOMEGROUP"
+        style="margin:0;" >
+        <option value="00">TÃ¼m Gruplar</option>
+    
+    <option value="HUBUBATLAR">HUBUBATLAR</option>
+    
+    <option value="HUBUBAT MAMÃœLLERÄ°">HUBUBAT MAMÃœLLERÄ°</option>
+    
+    <option value="BAKLÄ°YAT MAMÃœLLERÄ°">BAKLÄ°YAT MAMÃœLLERÄ°</option>
+    
+    <option value="YAÄ�LI TOHUMLAR">YAÄ�LI TOHUMLAR</option>
+    
+    <option value="NEBATÄ° YAÄ�LAR">NEBATÄ° YAÄ�LAR</option>
+    
+    <option value="HAYVANÄ° YAÄ�LAR">HAYVANÄ° YAÄ�LAR</option>
+    
+    <option value="Ã‡EÅ�Ä°TLÄ° GIDA MADDELERÄ°">Ã‡EÅ�Ä°TLÄ° GIDA MADDELERÄ°</option>
+    
+    <option value="ORMAN MAHSÃœLLERÄ°">ORMAN MAHSÃœLLERÄ°</option>
+    
+    <option value="TEKSTÄ°L HAMMADDELERÄ°">TEKSTÄ°L HAMMADDELERÄ°</option>
+    
+    <option value="CANLI HAYVANLAR">CANLI HAYVANLAR</option>
+    
+    <option value="HAM DERÄ°LER">HAM DERÄ°LER</option>
+    
+    <option value="AV DERÄ°LERÄ°">AV DERÄ°LERÄ°</option>
+    
+    <option value="Ã‡EÅ�Ä°TLÄ° MADDELER">Ã‡EÅ�Ä°TLÄ° MADDELER</option>
+    
+    <option value="KURU VE YAÅ� MEYVELER">KURU VE YAÅ� MEYVELER</option>
+    
+    <option value="KOTA DIÅ�I MADDELER">KOTA DIÅ�I MADDELER</option>
+    
+    <option value="RESEN TESCÄ°LLER">RESEN TESCÄ°LLER</option>
+    
+			    
+    </select>
+    <script> $('#HOMEGROUP').val('HUBUBATLAR') </script>
+                           
+    <select class="combo" 
+            xonchange ="document.form1.submit();" 
+            id="HOMELANG" 
+            style="display:none;"
+            name="HOMELANG">
+            <option value="TR" selected>TÃ¼rkÃ§e</option>
+            <option value="EN">Ä°ngilizce</option>
+    </select>
+    <script> $('#HOMELANG').val('TR') </script>
+
+    <img class="crsr rimg" 
+        src="../../images/refresh_icon_white.png"
+        align="absmiddle" 
+        width="36" 
+        style="margin-left:5px;"
+        onclick="$('#ldn').show();document.form1.submit();">    	
+                
+</td>
+</tr>
+
+<tr style="height:10px;">		
+    <td align="center" colspan="8"></td>
+</tr>
+
+                                                                                
+<tr height="30">
+<td colspan="9"
+    class="mg">
+    HUBUBATLAR</td>
+</tr>
+                    
+
+                                                        
+<tr height="30">
+    <td xcolspan="9"
+    class="ms">
+    HUBUBATLAR</td>
+
+    <td class="msd">SatÄ±ÅŸ Å�ekli</td>
+    <td class="msd">Son Ä°ÅŸlem Tarihi</td>
+    <td class="msd">AlÄ±ÅŸ En DÃ¼ÅŸÃ¼k</td>
+    <td class="msd">AlÄ±ÅŸ En YÃ¼ksek</td>
+    <td class="msd">AlÄ±ÅŸ Ortalama</td>
+    <td class="msd">SatÄ±ÅŸ En DÃ¼ÅŸÃ¼k</td>
+    <td class="msd">SatÄ±ÅŸ En YÃ¼ksek</td>
+    <td class="msd">SatÄ±ÅŸ Ortalama</td>
+
+</tr>
+                    
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=ARPA','_self')"
+        align="left">ARPA
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">11.05.2026</td>
+    <td class="td2">9,30</td>
+    <td class="td3">13,31</td>
+    <td class="td4">11,81</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=ARPA','_self')"
+        align="left">ARPA
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">09.01.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">11,60</td>
+    <td class="td3">11,60</td>
+    <td class="td4">11,60</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=ARPA','_self')"
+        align="left">ARPA
+    </td>
+    <td class="ma">OFÄ°S S.</td>
+    <td class="td1">08.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">11,30</td>
+    <td class="td3">12,15</td>
+    <td class="td4">11,57</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=AÅ�URELÄ°K BUÄ�DAY','_self')"
+        align="left">AÅ�URELÄ°K BUÄ�DAY
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">13.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">17,82</td>
+    <td class="td3">45,40</td>
+    <td class="td4">28,34</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=AÅ�URELÄ°K BUÄ�DAY','_self')"
+        align="left">AÅ�URELÄ°K BUÄ�DAY
+    </td>
+    <td class="ma">HTSG</td>
+    <td class="td1">14.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">33,42</td>
+    <td class="td3">36,43</td>
+    <td class="td4">34,74</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=BUÄ�DAY','_self')"
+        align="left">BUÄ�DAY
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">27.04.2026</td>
+    <td class="td2">11,00</td>
+    <td class="td3">15,10</td>
+    <td class="td4">13,10</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=BUÄ�DAY','_self')"
+        align="left">BUÄ�DAY
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">08.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">10,50</td>
+    <td class="td3">14,60</td>
+    <td class="td4">12,18</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=BUÄ�DAY','_self')"
+        align="left">BUÄ�DAY
+    </td>
+    <td class="ma">OFÄ°S S.</td>
+    <td class="td1">08.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">12,75</td>
+    <td class="td3">14,75</td>
+    <td class="td4">13,21</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=BUÄ�DAY (YEMLÄ°K)','_self')"
+        align="left">BUÄ�DAY (YEMLÄ°K)
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">09.04.2026</td>
+    <td class="td2">9,20</td>
+    <td class="td3">12,68</td>
+    <td class="td4">12,11</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=BUÄ�DAY TOHUMU','_self')"
+        align="left">BUÄ�DAY TOHUMU
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">12.02.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">31,00</td>
+    <td class="td3">31,00</td>
+    <td class="td4">31,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=MISIR','_self')"
+        align="left">MISIR
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">28.04.2026</td>
+    <td class="td2">11,00</td>
+    <td class="td3">85,00</td>
+    <td class="td4">12,31</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=MISIR CÄ°N','_self')"
+        align="left">MISIR CÄ°N
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">22.04.2026</td>
+    <td class="td2">12,00</td>
+    <td class="td3">12,00</td>
+    <td class="td4">12,00</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=MISIR CÄ°N','_self')"
+        align="left">MISIR CÄ°N
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">08.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">33,83</td>
+    <td class="td3">80,00</td>
+    <td class="td4">35,67</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=PÄ°RÄ°NÃ‡','_self')"
+        align="left">PÄ°RÄ°NÃ‡
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">21.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">28,00</td>
+    <td class="td3">114,33</td>
+    <td class="td4">72,38</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=PÄ°RÄ°NÃ‡','_self')"
+        align="left">PÄ°RÄ°NÃ‡
+    </td>
+    <td class="ma">HTSG</td>
+    <td class="td1">14.05.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">47,71</td>
+    <td class="td3">118,00</td>
+    <td class="td4">110,01</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=PÄ°RÄ°NÃ‡ KIRIK','_self')"
+        align="left">PÄ°RÄ°NÃ‡ KIRIK
+    </td>
+    <td class="ma">HTS</td>
+    <td class="td1">14.04.2026</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    <td class="td2">24,26</td>
+    <td class="td3">29,21</td>
+    <td class="td4">28,26</td>
+    
+</tr>
+                                        
+
+                    
+<tr align="right" class="bline">                        
+    <td class="ma"
+        onclick="$('#ldn').show();window.open('./?lno=3&MNAME=YULAF','_self')"
+        align="left">YULAF
+    </td>
+    <td class="ma">HMS</td>
+    <td class="td1">28.04.2026</td>
+    <td class="td2">10,20</td>
+    <td class="td3">30,00</td>
+    <td class="td4">18,50</td>
+    <td class="td2">0,00</td>
+    <td class="td3">0,00</td>
+    <td class="td4">0,00</td>
+    
+</tr>
+                                        
+
+
+        </table>
+
+    </form>
+
+</div>
+
+</div>
+
+    
+</body>
+
+</html>
+
+
+
+    <script language="javascript" type="text/javascript">
+
+        $.getJSON('https://api.ipify.org?format=json', function(data) {
+
+            var dataip=data.ip;            
+            var borsaadi='ERZURUM';
+            $('#sip').load('./data.aspx', {'SESSIONIP': dataip,'BORSAADI':borsaadi},function(){
+                $('#sip').html(dataip);
+            });
+
+        });
+    </script>
+
+
+
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/modules/exporting.js"></script>
+
+

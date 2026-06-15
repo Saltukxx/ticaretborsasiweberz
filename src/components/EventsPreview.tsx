@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
-import type { PlannedEvent } from "../data/plannedEvents";
-import { getUpcomingEvents } from "../data/plannedEvents";
+import { usePublicEvents } from "../hooks/usePublicApi";
+import type { PublicEvent } from "../lib/publicApi";
 import "./EventsShowcase.css";
 
 type PreviewVariant = "home" | "projects";
@@ -10,7 +10,8 @@ interface Props {
 }
 
 export default function EventsPreview({ variant }: Props) {
-  const events = getUpcomingEvents(3);
+  const { data } = usePublicEvents(3, "upcoming");
+  const events = data ?? [];
   const isProjects = variant === "projects";
 
   return (
@@ -59,8 +60,24 @@ export default function EventsPreview({ variant }: Props) {
   );
 }
 
-function EventsPreviewCard({ event, showProjectNote }: { event: PlannedEvent; showProjectNote: boolean }) {
-  const badge = badgeFromDate(event.sortKey);
+function badgeFromDate(iso: string | null) {
+  if (!iso) return { day: "—", monthShort: "—", year: "—" };
+  const d = new Date(iso);
+  return {
+    day: new Intl.DateTimeFormat("tr-TR", { day: "numeric" }).format(d),
+    monthShort: new Intl.DateTimeFormat("tr-TR", { month: "short" }).format(d),
+    year: new Intl.DateTimeFormat("tr-TR", { year: "numeric" }).format(d),
+  };
+}
+
+export function EventsPreviewCard({ event, showProjectNote: _showProjectNote }: { event: PublicEvent; showProjectNote: boolean }) {
+  const badge = badgeFromDate(event.startsAt);
+  const timeStr = event.startsAt
+    ? new Date(event.startsAt).toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" })
+    : "";
+  const dateLabel = event.startsAt
+    ? new Date(event.startsAt).toLocaleDateString("tr-TR", { day: "numeric", month: "long", year: "numeric" })
+    : "";
 
   return (
     <article className="events-preview__card">
@@ -72,26 +89,19 @@ function EventsPreviewCard({ event, showProjectNote }: { event: PlannedEvent; sh
         </span>
       </div>
       <div className="events-preview__body">
-        <span className="events-preview__cat mono">{event.category}</span>
+        <span
+          className={`events-row__status ${event.registrationOpen ? "events-row__status--open" : "events-row__status--planned"}`}
+        >
+          {event.statusLabel?.trim() ||
+            (event.registrationOpen ? "Kayıt açık" : "Planlandı")}
+        </span>
         <h3>{event.title}</h3>
         <p className="events-preview__when mono">
-          {event.dateLabel} · {event.time}
+          {dateLabel}{timeStr ? ` · ${timeStr}` : ""}
         </p>
-        <p className="events-preview__loc">{event.location}</p>
-        {showProjectNote && event.projectNote ? (
-          <p className="events-preview__note">{event.projectNote}</p>
-        ) : (
-          <p className="events-preview__snippet">{event.summary}</p>
-        )}
+        {event.location && <p className="events-preview__loc">{event.location}</p>}
+        {event.description && <p className="events-preview__snippet">{event.description}</p>}
       </div>
     </article>
   );
-}
-
-function badgeFromDate(isoDate: string) {
-  const d = new Date(`${isoDate}T12:00:00`);
-  const day = new Intl.DateTimeFormat("tr-TR", { day: "numeric" }).format(d);
-  const month = new Intl.DateTimeFormat("tr-TR", { month: "short" }).format(d);
-  const year = new Intl.DateTimeFormat("tr-TR", { year: "numeric" }).format(d);
-  return { day, monthShort: month, year };
 }

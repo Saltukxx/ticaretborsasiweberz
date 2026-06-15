@@ -57,6 +57,28 @@
 .phero__intro {
   max-width: 720px;
   font-size: 1.1rem;
+  line-height: 1.72;
   color: var(--c-text-dim);
   animation: fadeUp 1s 0.4s var(--ease-out) both;
+}
+
+@media (max-width: 1180px) {
+  .phero { padding: 110px 0 64px; }
+}
+
+@media (max-width: 720px) {
+  .phero { padding: 72px 0 44px; }
+  .phero__orb {
+    width: 280px;
+    height: 280px;
+    right: -80px;
+  }
+  .phero__crumb { margin-bottom: 20px; }
+}
+
+@media (max-width: 480px) {
+  .phero { padding: 72px 0 40px; }
+  .phero__intro { font-size: 1rem; }
+  .phero__title { margin: 12px 0 18px; }
+  .phero__orb { display: none; }
 }

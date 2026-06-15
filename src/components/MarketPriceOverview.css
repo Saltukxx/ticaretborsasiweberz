@@ -5,6 +5,15 @@
     linear-gradient(180deg, transparent, rgba(247, 248, 244, 0.6));
 }
 
+.mpov__empty {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  text-align: center;
+  color: var(--c-ink-500);
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
+}
+
 .mpov__head.section-title {
   align-items: flex-end;
 }
@@ -97,6 +106,20 @@
   }
 }
 
+@media (max-width: 480px) {
+  .mpov__head.section-title {
+    gap: 20px;
+  }
+
+  .mpov__tile {
+    padding: 18px 16px;
+  }
+
+  .mpov__currencies {
+    padding: 16px;
+  }
+}
+
 .mpov__tile {
   padding: 20px;
   display: grid;
@@ -148,7 +171,7 @@
   color: var(--c-text-muted);
 }
 
-.mpov__tile svg.sparkline {
+.mpov__tile .sparkline {
   width: 100%;
   height: auto;
 }

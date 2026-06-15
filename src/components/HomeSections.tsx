@@ -1,70 +1,37 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { announcements, news, products, services } from "../data/market";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useAnnouncements,
+  useCorporate,
+  useCurrentPrices,
+  useNewsList,
+  usePublicServiceAgreements,
+} from "../hooks/usePublicApi";
+import { prefetchPriceBulletin } from "../lib/prefetchBulletin";
+import { compareByVolumeDesc } from "../lib/bulletinFilters";
+import { formatDisplayHeading } from "../lib/formatDisplayHeading";
+import {
+  changeDirection,
+  formatChangePct,
+  formatPrice,
+  hasChangePct,
+} from "../lib/priceDisplay";
 import Sparkline from "./Sparkline";
 import { useReveal } from "../hooks/useReveal";
 import "./HomeSections.css";
 
-const ServiceIcon = ({ name }: { name: string }) => {
-  const props = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none" } as const;
-  const stroke = "currentColor";
-  switch (name) {
-    case "user":
-      return (
-        <svg {...props}>
-          <circle cx="12" cy="8" r="4" stroke={stroke} strokeWidth="1.4" />
-          <path d="M4 21c1-4 4.5-6 8-6s7 2 8 6" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-      );
-    case "stamp":
-      return (
-        <svg {...props}>
-          <path
-            d="M8 4l1 4h6l1-4M6 10h12v3a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4v-3zM4 21h16"
-            stroke={stroke}
-            strokeWidth="1.4"
-            strokeLinejoin="round"
-          />
-        </svg>
-      );
-    case "flask":
-      return (
-        <svg {...props}>
-          <path d="M9 3h6M10 3v6L4 19a2 2 0 0 0 1.7 3h12.6A2 2 0 0 0 20 19l-6-10V3" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
-        </svg>
-      );
-    case "doc":
-      return (
-        <svg {...props}>
-          <path d="M7 3h8l4 4v14H7z" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M15 3v4h4M9 12h6M9 16h6" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" />
-        </svg>
-      );
-    case "spark":
-      return (
-        <svg {...props}>
-          <path d="M12 3l2.4 5.6L20 11l-5.6 2.4L12 19l-2.4-5.6L4 11l5.6-2.4z" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
-        </svg>
-      );
-    case "book":
-      return (
-        <svg {...props}>
-          <path d="M5 4h10a4 4 0 0 1 4 4v12H9a4 4 0 0 1-4-4V4z" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
-          <path d="M5 16h14" stroke={stroke} strokeWidth="1.4" />
-        </svg>
-      );
-    default:
-      return (
-        <svg {...props}>
-          <circle cx="12" cy="12" r="9" stroke={stroke} strokeWidth="1.4" />
-        </svg>
-      );
-  }
-};
-
 export function HomePriceSummary() {
+  const queryClient = useQueryClient();
   const head = useReveal<HTMLDivElement>();
   const grid = useReveal<HTMLDivElement>();
-  const preview = products.slice(0, 4);
+  const { data: priceData } = useCurrentPrices();
+  // İşlem hacmine göre (miktar → tutar → ad) en yüksek 4 ürün.
+  const preview = useMemo(() => {
+    const rows = [...(priceData ?? [])];
+    rows.sort(compareByVolumeDesc);
+    return rows.slice(0, 4);
+  }, [priceData]);
 
   return (
     <section className="hsec hsec-price">
@@ -77,36 +44,53 @@ export function HomePriceSummary() {
             </h2>
           </div>
           <p>Kısa süreli piyasa izleme için seçili ürünler. Tam panel, tarih aralığı ve grafik özeti için fiyat bültenine geçin.</p>
-          <Link className="btn btn-primary hsec-price__cta" to="/fiyat-bulteni">
+          <Link
+            className="btn btn-primary hsec-price__cta"
+            to="/fiyat-bulteni"
+            onMouseEnter={() => prefetchPriceBulletin(queryClient)}
+          >
             Tam bültene git
           </Link>
         </div>
 
         <div className="hsec-price__grid reveal" ref={grid}>
           {preview.map((p) => {
-            const up = p.change >= 0;
+            const dir = changeDirection(p.change_pct);
+            const down = dir === "down";
             return (
-              <article className="hsec-price__card card" key={p.id}>
+              <article className="hsec-price__card card" key={p.product_slug}>
                 <div className="hsec-price__card-top">
                   <div>
-                    <h3>{p.name}</h3>
-                    <span className="hsec-price__meta mono">{p.category}</span>
+                    <h3>{p.product_name}</h3>
+                    <span className="hsec-price__meta mono">{p.product_category}</span>
                   </div>
-                  <span className={`hsec-price__chg mono ${up ? "is-up" : "is-down"}`}>
-                    {up ? "+" : ""}
-                    {p.change}%
+                  <span
+                    className={`hsec-price__chg mono ${
+                      hasChangePct(p.change_pct)
+                        ? dir === "up"
+                          ? "is-up"
+                          : "is-down"
+                        : ""
+                    }`}
+                  >
+                    {formatChangePct(p.change_pct)}
                   </span>
                 </div>
                 <div className="hsec-price__mid mono">
-                  <span className="hsec-price__avg">{p.avg.toLocaleString("tr-TR", { minimumFractionDigits: 2 })}</span>
-                  <span className="hsec-price__unit">{p.unit}</span>
+                  <span className="hsec-price__avg">{formatPrice(p.avg_price)}</span>
+                  <span className="hsec-price__unit">{p.product_unit}</span>
                 </div>
                 <div className="hsec-price__spark">
-                  <Sparkline data={p.series} width={280} height={48} color={up ? "var(--c-green-600)" : "var(--c-red-500)"} />
+                  <Sparkline
+                    data={p.sparkline_series ?? []}
+                    width={280}
+                    height={48}
+                    color={down ? "var(--c-red-500)" : "var(--c-green-600)"}
+                  />
                 </div>
                 <div className="hsec-price__foot mono">
-                  <span>Düşük {p.low}</span>
-                  <span>Yüksek {p.high}</span>
+                  <span>Düşük {formatPrice(p.low_price)}</span>
+                  <span>Yüksek {formatPrice(p.high_price)}</span>
                 </div>
               </article>
             );
@@ -120,8 +104,10 @@ export function HomePriceSummary() {
 export function HomeNewsAnnouncementsBand() {
   const headRef = useReveal<HTMLDivElement>();
   const gridRef = useReveal<HTMLDivElement>();
-  const topNews = news.slice(0, 2);
-  const ann = announcements.slice(0, 4);
+  const { data: newsData } = useNewsList(4);
+  const { data: annData } = useAnnouncements(6);
+  const topNews = (newsData ?? []).slice(0, 2);
+  const ann = (annData ?? []).slice(0, 4);
 
   return (
     <section className="hsec hsec-dual">
@@ -150,7 +136,9 @@ export function HomeNewsAnnouncementsBand() {
                   <Link to="/haberler" className="hsec-dual__news-link">
                     <span className={`hsec-dual__chip hsec-dual__chip--${String(n.tone)}`}>{n.category}</span>
                     <span className="hsec-dual__news-title">{n.title}</span>
-                    <span className="hsec-dual__news-date mono">{n.date}</span>
+                    <span className="hsec-dual__news-date mono">
+                      {n.publishedAt ? new Date(n.publishedAt).toLocaleDateString("tr-TR", { day: "numeric", month: "short" }) : ""}
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -165,10 +153,10 @@ export function HomeNewsAnnouncementsBand() {
               </Link>
             </div>
             <ul className="hsec-dual__ann-list">
-              {ann.map((a, i) => (
-                <li key={i} className="mono">
+              {ann.map((a) => (
+                <li key={a.id} className="mono">
                   <span className="hsec-dual__ann-dot" aria-hidden />
-                  <span>{a}</span>
+                  <span>{a.title}</span>
                 </li>
               ))}
             </ul>
@@ -179,36 +167,91 @@ export function HomeNewsAnnouncementsBand() {
   );
 }
 
+const AGREEMENT_CATEGORY_LABELS: Record<string, string> = {
+  akaryakit: "Akaryakıt",
+  kargo: "Kargo & Lojistik",
+  giyim: "İş Giyimi",
+  optik: "Optik",
+};
+
+const AgreementIcon = ({ category }: { category: string }) => {
+  const props = { width: 22, height: 22, viewBox: "0 0 24 24", fill: "none" } as const;
+  const stroke = "currentColor";
+  switch (category) {
+    case "akaryakit":
+      return (
+        <svg {...props}>
+          <path d="M6 20V8l4-3v15M14 20V4h4l2 3v13" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      );
+    case "kargo":
+      return (
+        <svg {...props}>
+          <path
+            d="M3 8h11v8H3zM14 10h4l3 3v3h-7zM7 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm10 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+            stroke={stroke}
+            strokeWidth="1.4"
+            strokeLinejoin="round"
+          />
+        </svg>
+      );
+    case "giyim":
+      return (
+        <svg {...props}>
+          <path d="M12 3 7 7v14h10V7l-5-4Z" stroke={stroke} strokeWidth="1.4" strokeLinejoin="round" />
+        </svg>
+      );
+    case "optik":
+      return (
+        <svg {...props}>
+          <circle cx="12" cy="12" r="8" stroke={stroke} strokeWidth="1.4" />
+          <path d="M4 12h16M12 4c2 3 2 13 0 16M12 4c-2 3-2 13 0 16" stroke={stroke} strokeWidth="1.4" />
+        </svg>
+      );
+    default:
+      return (
+        <svg {...props}>
+          <path d="M8 12l3 3 5-6" stroke={stroke} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="9" stroke={stroke} strokeWidth="1.4" />
+        </svg>
+      );
+  }
+};
+
 export function HomeServicesShortcuts() {
   const headRef = useReveal<HTMLDivElement>();
   const gridRef = useReveal<HTMLDivElement>();
-  const slice = services.slice(0, 6);
+  const { data: agreements } = usePublicServiceAgreements();
+  const slice = (agreements ?? []).slice(0, 6);
 
   return (
     <section className="hsec hsec-svc">
       <div className="container">
         <div className="hsec-svc__head section-title reveal" ref={headRef}>
           <div>
-            <span className="eyebrow">Üye · Hızlı Erişim</span>
+            <span className="eyebrow">Üye · Avantajlar</span>
             <h2>
-              Kurumsal hizmet <em className="hsec-svc__em">kısayolları</em>
+              Anlaşma<em className="hsec-svc__em">larımız</em>
             </h2>
           </div>
-          <p>En sık kullanılan işlemler için tek tıkla hizmet sayfasına yönlendirme. Tüm hizmet kalemleri detaylı açıklamalarla listelenir.</p>
-          <Link className="btn btn-ghost hsec-svc__cta" to="/hizmetler">
-            Tüm hizmetleri aç
+          <p>Borsamızın imzaladığı protokoller kapsamında üyelerimiz akaryakıt, kargo, iş giyimi ve optik hizmetlerinde indirimli fiyatlardan yararlanır.</p>
+          <Link className="btn btn-ghost hsec-svc__cta" to="/hizmetler#anlasmalarimiz">
+            Tüm anlaşmaları aç
           </Link>
         </div>
 
         <div className="hsec-svc__grid reveal" ref={gridRef}>
-          {slice.map((s) => (
-            <Link key={s.id} to="/hizmetler" className="hsec-svc__tile card">
+          {slice.map((a) => (
+            <Link key={a.id} to={`/hizmetler/anlasmalar/${a.slug}`} className="hsec-svc__tile card">
               <span className="hsec-svc__icon">
-                <ServiceIcon name={s.icon} />
+                <AgreementIcon category={a.category} />
               </span>
               <div>
-                <h3>{s.title}</h3>
-                <p>{s.desc}</p>
+                <span className="mono hsec-svc__tile-cat">
+                  {AGREEMENT_CATEGORY_LABELS[a.category] ?? "Anlaşma"}
+                </span>
+                <h3>{a.title}</h3>
+                <p>{a.summary}</p>
               </div>
             </Link>
           ))}
@@ -260,15 +303,33 @@ export function HomeRegionalNetworkCta() {
 
 export function HomeCorporateCta() {
   const ref = useReveal<HTMLDivElement>();
+  const { data, isLoading, isError } = useCorporate();
+  const profile = data?.profile;
+  const { lead: headingLead, emphasis: headingEmphasis } = formatDisplayHeading(profile?.heading);
+
+  const intro = isLoading
+    ? "Kurumsal içerik yükleniyor…"
+    : isError
+      ? "Misyon, vizyon ve tarihçe — kurumsal sayfada ayrıntılı bilgi."
+      : profile?.lead ??
+        "Misyon, vizyon, tarihçe ve bölgesel ekonomiye katkı — kurumsal kimlik ve yönetişim çerçevesi ayrı sayfada ayrıntılı sunulur.";
 
   return (
     <section className="hsec hsec-corp">
       <div className="container">
         <div className="hsec-corp__band card reveal" ref={ref}>
           <div className="hsec-corp__text">
-            <span className="eyebrow">Kurumsal · 1946&apos;dan Beri</span>
-            <h2>Erzurum Ticaret Borsası ile tanışın</h2>
-            <p>Misyon, vizyon, tarihçe ve bölgesel ekonomiye katkı — kurumsal kimlik ve yönetişim çerçevesi ayrı sayfada ayrıntılı sunulur.</p>
+            <span className="eyebrow">{profile?.eyebrow ?? "Kurumsal · 1946'dan Beri"}</span>
+            <h2>
+              {headingEmphasis ? (
+                <>
+                  {headingLead} ile <em>tanışın</em>
+                </>
+              ) : (
+                <>{headingLead} ile tanışın</>
+              )}
+            </h2>
+            <p>{intro}</p>
           </div>
           <div className="hsec-corp__actions">
             <Link className="btn btn-primary" to="/kurumsal">

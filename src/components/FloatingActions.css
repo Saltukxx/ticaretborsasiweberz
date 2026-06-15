@@ -1,0 +1,24 @@
+.fab-stack {
+  position: fixed;
+  right: calc(1.25rem + env(safe-area-inset-right, 0px));
+  bottom: calc(1.25rem + env(safe-area-inset-bottom, 0px));
+  z-index: 55;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-end;
+  gap: 0.65rem;
+}
+
+.fab-stack .wa-float {
+  position: static;
+  right: auto;
+  bottom: auto;
+}
+
+@media (max-width: 720px) {
+  .fab-stack {
+    right: calc(1rem + env(safe-area-inset-right, 0px));
+    bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    gap: 0.55rem;
+  }
+}

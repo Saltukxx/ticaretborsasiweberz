@@ -1,0 +1,292 @@
+/* Kurumsal belge içerik sayfaları — politika, tarihçe, plan */
+
+.corp-doc-page {
+  padding: 0 0 5rem;
+}
+
+.corp-doc-page__inner {
+  max-width: 52rem;
+}
+
+.corp-doc-page__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.corp-doc-page__toolbar .report-detail__back {
+  margin-bottom: 0;
+}
+
+.corp-doc-page__article {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(11, 21, 48, 0.08);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 32px 80px -40px rgba(5, 13, 36, 0.18);
+}
+
+.corp-doc-page__hero {
+  padding: 2rem 2.25rem 1.75rem;
+  background:
+    linear-gradient(135deg, rgba(11, 21, 48, 0.97), rgba(15, 40, 90, 0.92)),
+    radial-gradient(800px 320px at 100% 0%, rgba(200, 181, 108, 0.18), transparent 55%);
+  color: rgba(248, 250, 252, 0.95);
+}
+
+.corp-doc-page__hero .mono {
+  display: inline-block;
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--c-gold-400, #c8b56c);
+  margin-bottom: 0.65rem;
+}
+
+.corp-doc-page__hero h2 {
+  font-family: var(--f-display, serif);
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  line-height: 1.25;
+  margin: 0 0 0.75rem;
+  color: #fff;
+}
+
+.corp-doc-page__hero p {
+  margin: 0;
+  max-width: 42rem;
+  font-size: 1.02rem;
+  line-height: 1.65;
+  color: rgba(238, 242, 248, 0.82);
+}
+
+.corp-doc-page__body {
+  padding: 2rem 2.25rem 2.5rem;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--c-ink-900, #1d2433);
+}
+
+.corp-doc-page__body > h2 {
+  font-family: var(--f-display, serif);
+  font-size: 1.35rem;
+  color: var(--c-navy-900, #0b1530);
+  margin: 2rem 0 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid rgba(200, 181, 108, 0.45);
+}
+
+.corp-doc-page__body > h2:first-child {
+  margin-top: 0;
+}
+
+.corp-doc-page__body > h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--c-navy-800, #12204a);
+  margin: 1.5rem 0 0.65rem;
+}
+
+.corp-doc-page__body > p {
+  margin: 0 0 1rem;
+}
+
+.corp-doc-page__body > ul,
+.corp-doc-page__body > ol {
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+/* İlke kartları (etik, mali vb.) */
+.corp-doc-page__body > ul.corp-principles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 1rem;
+}
+
+.corp-doc-page__body > ul.corp-principles > li {
+  margin: 0;
+  padding: 1.15rem 1.2rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #fdfcf8, #f6f4ec);
+  border: 1px solid rgba(11, 21, 48, 0.08);
+  box-shadow: 0 12px 32px -24px rgba(5, 13, 36, 0.25);
+}
+
+.corp-doc-page__body > ul.corp-principles > li strong {
+  display: block;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--c-navy-800, #12204a);
+  margin-bottom: 0.45rem;
+}
+
+.corp-doc-page__body > ul.corp-principles > li p {
+  margin: 0;
+  font-size: 0.94rem;
+  line-height: 1.6;
+  color: var(--c-ink-700, #3a4255);
+}
+
+/* Madde listesi (üye ilişkileri vb.) */
+.corp-doc-page__body > ul.corp-points > li {
+  position: relative;
+  margin: 0 0 0.85rem;
+  padding: 0.9rem 1rem 0.9rem 2.5rem;
+  border-radius: 10px;
+  background: rgba(47, 165, 90, 0.06);
+  border-left: 3px solid var(--c-green-500, #2fa55a);
+}
+
+.corp-doc-page__body > ul.corp-points > li::before {
+  content: "";
+  position: absolute;
+  left: 0.95rem;
+  top: 1.15rem;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c-green-500, #2fa55a);
+}
+
+/* Numaralı ilkeler */
+.corp-doc-page__body > ol.corp-numbered {
+  counter-reset: corp-item;
+}
+
+.corp-doc-page__body > ol.corp-numbered > li {
+  counter-increment: corp-item;
+  margin: 0 0 0.85rem;
+  padding: 1rem 1rem 1rem 3.25rem;
+  border-radius: 10px;
+  background: #f8f9fc;
+  border: 1px solid rgba(11, 21, 48, 0.06);
+  position: relative;
+}
+
+.corp-doc-page__body > ol.corp-numbered > li::before {
+  content: counter(corp-item);
+  position: absolute;
+  left: 1rem;
+  top: 1rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  font-family: var(--f-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--c-navy-900, #0b1530);
+  background: var(--c-gold-300, #d8c47a);
+}
+
+/* Tarihçe bölümleri */
+.corp-doc-page__body .corp-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 1.5rem 0 0;
+}
+
+.corp-doc-page__body .corp-timeline__item {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.corp-doc-page__body .corp-timeline__year {
+  font-family: var(--f-mono, monospace);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--c-gold-600, #9a8540);
+  padding-top: 0.15rem;
+}
+
+.corp-doc-page__body .corp-timeline__content h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+}
+
+.corp-doc-page__body .corp-timeline__content p {
+  margin: 0;
+  color: var(--c-ink-700, #3a4255);
+}
+
+/* Meta tablo (haberleşme) */
+.corp-doc-page__body .corp-meta {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.5rem;
+  font-size: 0.88rem;
+}
+
+.corp-doc-page__body .corp-meta th,
+.corp-doc-page__body .corp-meta td {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid rgba(11, 21, 48, 0.1);
+  text-align: left;
+}
+
+.corp-doc-page__body .corp-meta th {
+  background: rgba(11, 21, 48, 0.04);
+  font-weight: 600;
+  color: var(--c-navy-800, #12204a);
+}
+
+/* Organizasyon şeması görseli */
+.corp-doc-page__body .corp-figure {
+  margin: 0;
+  padding: 1.25rem;
+  border-radius: 14px;
+  background: #f8f9fc;
+  border: 1px solid rgba(11, 21, 48, 0.08);
+  text-align: center;
+}
+
+.corp-doc-page__body .corp-figure img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.corp-doc-page__sign {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(11, 21, 48, 0.1);
+  text-align: right;
+}
+
+.corp-doc-page__sign p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--c-ink-600, #4a5368);
+}
+
+.corp-doc-page__sign strong {
+  display: block;
+  margin-top: 0.35rem;
+  font-family: var(--f-display, serif);
+  font-size: 1.05rem;
+  color: var(--c-navy-900, #0b1530);
+}
+
+@media (max-width: 720px) {
+  .corp-doc-page__hero,
+  .corp-doc-page__body {
+    padding-left: 1.15rem;
+    padding-right: 1.15rem;
+  }
+
+  .corp-doc-page__body .corp-timeline__item {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
