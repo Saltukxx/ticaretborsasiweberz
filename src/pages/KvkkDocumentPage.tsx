@@ -87,6 +87,8 @@ export default function KvkkDocumentPage() {
                     src={pdfUrl}
                     downloadUrl={pdfUrl}
                     title={doc.title}
+                    defaultViewMode="pdf"
+                    allowTextMode={false}
                   />
                 </Suspense>
               </div>

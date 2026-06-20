@@ -19,6 +19,11 @@ import {
   timestampForStep,
 } from "../lib/recipeVideoSync";
 import {
+  answerRecipeQuestion,
+  narrateStepForFallback,
+  recipeChatFallbackAnswer,
+} from "../lib/recipeChatFallback";
+import {
   extractVideoCommands,
   parseLocalVideoIntent,
   videoCommandAck,
@@ -26,15 +31,16 @@ import {
   type RecipeVideoState,
 } from "../lib/recipeVideoControl";
 
-const GEMINI_HISTORY_MAX_TURNS = 12;
+const GEMINI_HISTORY_MAX_TURNS = 8;
 const STORAGE_KEY = "etb:recipe:kadayif-dolmasi:step";
 const MESSAGES_STORAGE_KEY = "etb:recipe:kadayif-dolmasi:messages";
+const VIDEO_TIME_STORAGE_KEY = "etb:recipe:kadayif-dolmasi:video-time";
 const MESSAGES_STORAGE_MAX = 50;
 const SEEK_GUARD_MS = 450;
 const SEGMENT_END_BUFFER = 0.15;
+const VIDEO_TIME_DEBOUNCE_MS = 500;
 
-const CONTEXT_MISSING =
-  "Paylaşılan bilgilerde bu konu yer almıyor. Malzemeler, tarif adımları veya kültürel bağlam hakkında soru sorabilirsiniz.";
+export type RecipeChatReplyMode = "live" | "local";
 
 function turkishRecipeChatFallbackIntro(code: RecipeChatErrorCode): string {
   switch (code) {
@@ -86,6 +92,8 @@ export interface UseRecipeChatReturn {
   onVideoPlay: () => void;
   onVideoPause: () => void;
   onProgressSeek: (time: number) => void;
+  replyMode: RecipeChatReplyMode;
+  resetChat: () => void;
 }
 
 export type GoToStepOptions = {
@@ -178,19 +186,27 @@ function persistMessages(messages: ChatMessage[]): void {
   }
 }
 
-function narrateStep(step: RecipeStep): string {
-  let text = `**Adım ${step.id}/${recipe.steps.length} — ${step.title}**\n\n`;
-  text += step.description + "\n\n";
-  text += `_${step.detail}_`;
-
-  if (step.tips && step.tips.length > 0) {
-    text += "\n\n**İpuçları:**\n";
-    step.tips.forEach((tip) => {
-      text += `• ${tip}\n`;
-    });
+function readStoredVideoTime(): number | null {
+  try {
+    const raw = sessionStorage.getItem(VIDEO_TIME_STORAGE_KEY);
+    if (!raw) return null;
+    const n = Number.parseFloat(raw);
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  } catch {
+    return null;
   }
+}
 
-  return text;
+function persistVideoTime(time: number): void {
+  try {
+    sessionStorage.setItem(VIDEO_TIME_STORAGE_KEY, String(time));
+  } catch {
+    /* private mode / quota */
+  }
+}
+
+function narrateStep(step: RecipeStep): string {
+  return narrateStepForFallback(step);
 }
 
 function welcomeMessage(): string {
@@ -201,190 +217,6 @@ function welcomeMessage(): string {
     `**"Tarife Başla"** deyin veya videodaki oynat düğmesine basın. Her adım sonunda video durur; devam etmek için **Sonraki Adım** veya **Devam Et**'e basın.\n\n` +
     `Videoyu sohbetten de yönetebilirsiniz: _"videoyu durdur"_, _"kızartma adımına git"_, _"10 saniye ileri sar"_ gibi istekler verebilirsiniz.`
   );
-}
-
-function answerQuestion(text: string, currentStep: number): string | null {
-  const lower = text.toLocaleLowerCase("tr-TR");
-
-  if (
-    lower.includes("malzeme") ||
-    lower.includes("ne lazım") ||
-    lower.includes("neler gerek")
-  ) {
-    let ans = "**Kadayıf Dolması için gereken malzemeler:**\n\n";
-    recipe.ingredients.forEach((ing) => {
-      ans += `• ${ing.name} — ${ing.amount}\n`;
-    });
-    return ans;
-  }
-
-  if (
-    lower.includes("kalori") ||
-    lower.includes("sağlık") ||
-    lower.includes("diyet")
-  ) {
-    return CONTEXT_MISSING;
-  }
-
-  if (
-    lower.includes("tarih") ||
-    lower.includes("kültür") ||
-    lower.includes("gelenek") ||
-    lower.includes("osmanlı") ||
-    lower.includes("nereden") ||
-    lower.includes("hikaye") ||
-    lower.includes("köken")
-  ) {
-    return recipe.culturalContext;
-  }
-
-  if (lower.includes("tereyağ") || lower.includes("margarin")) {
-    return CONTEXT_MISSING;
-  }
-
-  if (lower.includes("yağ") || lower.includes("kızart")) {
-    const step = recipe.steps.find((s) => s.id === 4);
-    if (!step) return CONTEXT_MISSING;
-    return `**${step.title}**\n\n${step.description}\n\n_${step.detail}_`;
-  }
-
-  if (lower.includes("yumurta") || lower.includes("bulama")) {
-    const prep = recipe.steps.find((s) => s.id === 2);
-    const dip = recipe.steps.find((s) => s.id === 3);
-    let ans = "";
-    if (prep) ans += `**${prep.title}:** ${prep.description}\n\n`;
-    if (dip) ans += `**${dip.title}:** ${dip.description}`;
-    return ans || CONTEXT_MISSING;
-  }
-
-  if (
-    lower.includes("şerbet") &&
-    (lower.includes("hazır") ||
-      lower.includes("kaynat") ||
-      lower.includes("nasıl yap") ||
-      lower.includes("tarif"))
-  ) {
-    return "Videoda şerbet hazırlığı gösterilmez; atölyede **hazır şerbet** kullanılır. Şerbete alma ve şerbetleme adımları rehberde anlatılır.";
-  }
-
-  if (
-    lower.includes("ceviz") ||
-    lower.includes("fındık") ||
-    lower.includes("iç")
-  ) {
-    const step = recipe.steps.find((s) => s.id === 3);
-    if (!step) return CONTEXT_MISSING;
-    let ans = `**${step.title}**\n\n${step.description}\n\n_${step.detail}_`;
-    if (step.tips?.length) {
-      ans += "\n\n**İpuçları:**\n";
-      step.tips.forEach((tip) => {
-        ans += `• ${tip}\n`;
-      });
-    }
-    return ans;
-  }
-
-  if (
-    lower.includes("şerbet") ||
-    lower.includes("şeker") ||
-    lower.includes("tatlandır")
-  ) {
-    const pourStep = recipe.steps.find((s) => s.id === 5);
-    const soakStep = recipe.steps.find((s) => s.id === 6);
-    let ans = "";
-    if (pourStep) {
-      ans += `**${pourStep.title}:** ${pourStep.description}\n\n_${pourStep.detail}_`;
-    }
-    if (soakStep) {
-      ans += `\n\n**${soakStep.title}:** ${soakStep.description}`;
-    }
-    return ans || CONTEXT_MISSING;
-  }
-
-  if (
-    lower.includes("sakla") ||
-    lower.includes("buzd") ||
-    lower.includes("dayanık") ||
-    lower.includes("ne kadar dayanır")
-  ) {
-    const serveStep = recipe.steps.find((s) => s.id === 7);
-    if (serveStep?.tips?.length) {
-      let ans = `**${serveStep.title} — saklama ve servis:**\n\n`;
-      serveStep.tips.forEach((tip) => {
-        ans += `• ${tip}\n`;
-      });
-      return ans;
-    }
-    return CONTEXT_MISSING;
-  }
-
-  if (lower.includes("ipucu") || lower.includes("püf") || lower.includes("dikkat")) {
-    const step = recipe.steps[currentStep - 1];
-    if (step?.tips && step.tips.length > 0) {
-      let ans = `**${step.title} için ipuçları:**\n\n`;
-      step.tips.forEach((tip) => {
-        ans += `• ${tip}\n`;
-      });
-      return ans;
-    }
-    return "Bu adımla ilgili ek bir ipucu bulunmuyor, ancak başka bir sorunuz varsa yardımcı olmaktan memnuniyet duyarım.";
-  }
-
-  if (
-    lower.includes("ilginç") ||
-    lower.includes("bilgi") ||
-    lower.includes("biliyor") ||
-    lower.includes("enteresan")
-  ) {
-    const fact =
-      recipe.funFacts[Math.floor(Math.random() * recipe.funFacts.length)];
-    return `**İlginç Bilgi:** ${fact}`;
-  }
-
-  if (
-    lower.includes("coğrafi") ||
-    lower.includes("tescil") ||
-    lower.includes("patent")
-  ) {
-    return `Kadayıf Dolması, **${recipe.registration}** tarih ve numarasıyla coğrafi işaret olarak tescil edilmiştir.\n\n${recipe.culturalContext}`;
-  }
-
-  if (
-    lower.includes("teşekkür") ||
-    lower.includes("sağol") ||
-    lower.includes("eyvallah")
-  ) {
-    return "Rica ederim! Erzurum'un bu güzel kültürel mirasını sizinle paylaşmak bir ayrıcalık. Başka bir sorunuz olursa çekinmeden sorabilirsiniz. Afiyet olsun!";
-  }
-
-  if (
-    lower.includes("merhaba") ||
-    lower.includes("selam") ||
-    lower.includes("hey")
-  ) {
-    return "Hoş geldiniz! Kadayıf dolmasının yapılışını birlikte keşfetmeye hazır mısınız? \"Tarife Başla\" butonuna tıklayarak ya da soru sorarak devam edebilirsiniz.";
-  }
-
-  if (
-    lower.includes("bu adım") ||
-    lower.includes("şimdi ne") ||
-    lower.includes("ne yapmalı")
-  ) {
-    const step = recipe.steps[currentStep - 1];
-    if (step) return narrateStep(step);
-    return "Henüz tarife başlamadınız. \"Tarife Başla\" butonuna tıklayarak ilk adıma geçebilirsiniz.";
-  }
-
-  return null;
-}
-
-function fallbackAnswer(): string {
-  const responses = [
-    "Bu konuda elimdeki bilgi sınırlı, ancak kadayıf dolmasının yapılışıyla ilgili herhangi bir sorunuz varsa detaylı cevap verebilirim. Malzemeler, teknikler veya kültürel bağlam hakkında sormak ister misiniz?",
-    "Bu soruyu tam olarak cevaplayamıyorum. Kadayıf dolmasının tarifi, malzemeleri, kültürel hikayesi veya yapım teknikleri hakkında sorularınızı yanıtlayabilirim.",
-    "Kadayıf dolması dışındaki konularda bilgim sınırlıdır. Tariflerin adımları, Erzurum mutfak kültürü veya malzemeler hakkında soru sormayı deneyin.",
-  ];
-  return responses[Math.floor(Math.random() * responses.length)];
 }
 
 export function useRecipeChat(): UseRecipeChatReturn {
@@ -401,6 +233,7 @@ export function useRecipeChat(): UseRecipeChatReturn {
   });
   const [isVideoPlaying, setIsVideoPlaying] = useState(false);
   const [awaitingContinue, setAwaitingContinue] = useState(false);
+  const [replyMode, setReplyMode] = useState<RecipeChatReplyMode>("live");
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hasInit = useRef(false);
@@ -416,6 +249,8 @@ export function useRecipeChat(): UseRecipeChatReturn {
   const videoProgressRef = useRef(videoProgress);
   const isVideoPlayingRef = useRef(isVideoPlaying);
   const awaitingContinueRef = useRef(awaitingContinue);
+  const videoTimeRestoredRef = useRef(false);
+  const videoTimeDebounceRef = useRef<number | null>(null);
 
   videoProgressRef.current = videoProgress;
   isVideoPlayingRef.current = isVideoPlaying;
@@ -564,6 +399,13 @@ export function useRecipeChat(): UseRecipeChatReturn {
     (currentTime: number, duration: number) => {
       setVideoProgress({ currentTime, duration });
 
+      if (videoTimeDebounceRef.current != null) {
+        window.clearTimeout(videoTimeDebounceRef.current);
+      }
+      videoTimeDebounceRef.current = window.setTimeout(() => {
+        persistVideoTime(currentTime);
+      }, VIDEO_TIME_DEBOUNCE_MS);
+
       if (isProgrammaticSeekRef.current) return;
 
       const video = videoRef.current;
@@ -578,7 +420,19 @@ export function useRecipeChat(): UseRecipeChatReturn {
 
   const onVideoLoadedMetadata = useCallback((duration: number) => {
     setVideoProgress((prev) => ({ ...prev, duration }));
-  }, []);
+
+    if (videoTimeRestoredRef.current) return;
+    videoTimeRestoredRef.current = true;
+
+    const stored = readStoredVideoTime();
+    const video = videoRef.current;
+    if (stored == null || !video || duration <= 0) return;
+    if (stored >= duration) return;
+
+    beginSeekGuard();
+    video.currentTime = stored;
+    setVideoProgress((prev) => ({ ...prev, currentTime: stored }));
+  }, [beginSeekGuard]);
 
   const onVideoEnded = useCallback(() => {
     setIsVideoPlaying(false);
@@ -876,6 +730,10 @@ export function useRecipeChat(): UseRecipeChatReturn {
 
       setIsTyping(true);
 
+      const botId = makeId();
+      let streamStarted = false;
+      let streamedText = "";
+
       void (async () => {
         const videoState = getVideoState();
 
@@ -887,10 +745,28 @@ export function useRecipeChat(): UseRecipeChatReturn {
             currentStep,
             videoState,
             sessionIdRef.current,
+            (delta) => {
+              streamedText += delta;
+              if (!streamStarted) {
+                streamStarted = true;
+                setIsTyping(false);
+                setMessages((prev) => [
+                  ...prev,
+                  { id: botId, role: "bot", content: streamedText, timestamp: Date.now() },
+                ]);
+                return;
+              }
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botId ? { ...m, content: streamedText } : m,
+                ),
+              );
+            },
           );
           if (controller.signal.aborted) return;
 
-          const { cleanText, commands } = extractVideoCommands(reply);
+          const finalReply = streamStarted ? streamedText : reply;
+          const { cleanText, commands } = extractVideoCommands(finalReply);
           let cmds = commands;
 
           if (cmds.length === 0) {
@@ -908,9 +784,17 @@ export function useRecipeChat(): UseRecipeChatReturn {
           const body =
             sanitized || ack || "Tamam, isteğinizi yerine getirdim.";
 
-          setMessages((prev) => [...prev, botMsg(body)]);
+          setReplyMode("live");
+          if (streamStarted) {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === botId ? { ...m, content: body } : m)),
+            );
+          } else {
+            setMessages((prev) => [...prev, botMsg(body)]);
+          }
         } catch (err) {
           if (controller.signal.aborted) return;
+          setReplyMode("local");
           const intro =
             err instanceof RecipeChatApiError
               ? turkishRecipeChatFallbackIntro(err.code)
@@ -927,7 +811,8 @@ export function useRecipeChat(): UseRecipeChatReturn {
             return;
           }
 
-          const body = answerQuestion(trimmed, currentStep) ?? fallbackAnswer();
+          const body =
+            answerRecipeQuestion(trimmed, currentStep) ?? recipeChatFallbackAnswer();
           addBotMessage(`${intro}${body}`, undefined, true);
         } finally {
           if (!controller.signal.aborted) setIsTyping(false);
@@ -943,6 +828,18 @@ export function useRecipeChat(): UseRecipeChatReturn {
       runVideoCommands,
     ],
   );
+
+  const resetChat = useCallback(() => {
+    chatAbortRef.current?.abort();
+    setIsTyping(false);
+    setReplyMode("live");
+    try {
+      sessionStorage.removeItem(MESSAGES_STORAGE_KEY);
+    } catch {
+      /* private mode */
+    }
+    setMessages([botMsg(welcomeMessage())]);
+  }, []);
 
   return {
     messages,
@@ -965,5 +862,7 @@ export function useRecipeChat(): UseRecipeChatReturn {
     onVideoPlay,
     onVideoPause,
     onProgressSeek,
+    replyMode,
+    resetChat,
   };
 }

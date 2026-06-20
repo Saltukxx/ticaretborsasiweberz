@@ -6,6 +6,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { searchNews, type PublicNewsItem } from "../lib/publicApi";
+import { lockBodyScroll, unlockBodyScroll } from "../lib/bodyScrollLock";
 import { resolveMediaUrl } from "../lib/resolveMediaUrl";
 import "./SearchOverlay.css";
 
@@ -26,22 +27,20 @@ export default function SearchOverlay({ open, onClose }: SearchOverlayProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Açılınca odaklan, kapanınca sıfırla
   useEffect(() => {
-    if (open) {
-      const t = setTimeout(() => inputRef.current?.focus(), 60);
-      document.body.style.overflow = "hidden";
-      return () => {
-        clearTimeout(t);
-        document.body.style.overflow = "";
-      };
+    if (!open) {
+      setQuery("");
+      setState({ phase: "idle" });
+      return;
     }
-    setQuery("");
-    setState({ phase: "idle" });
-    return undefined;
+    lockBodyScroll("search-overlay");
+    const t = setTimeout(() => inputRef.current?.focus(), 60);
+    return () => {
+      clearTimeout(t);
+      unlockBodyScroll("search-overlay");
+    };
   }, [open]);
 
-  // Esc ile kapat
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {

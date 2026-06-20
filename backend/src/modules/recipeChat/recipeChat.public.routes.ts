@@ -1,13 +1,41 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import { getClientIp } from "../../lib/clientIp.js";
 import rateLimit from "@fastify/rate-limit";
 import {
   GeminiRecipeError,
   generateRecipeChatReply,
+  streamRecipeChatReply,
 } from "../../lib/geminiRecipe.js";
+import { endSseReply, initSseReply, writeSseEvent } from "../../lib/sseReply.js";
 import { collectChatRequestMeta } from "../chatLogs/chatLogs.collectMeta.js";
 import { logChatConversation } from "../chatLogs/chatLogs.service.js";
 import { recipeChatBodySchema } from "./recipeChat.schema.js";
+
+function wantsStream(req: { query: unknown }): boolean {
+  const q = req.query as { stream?: string };
+  return q.stream === "1" || q.stream === "true";
+}
+
+function geminiErrorStatus(code: GeminiRecipeError["code"]): number {
+  return code === "blocked" ? 422 : 502;
+}
+
+function sendRecipeGeminiError(
+  reply: FastifyReply,
+  err: GeminiRecipeError,
+  stream: boolean,
+): FastifyReply | void {
+  const apiCode = `GEMINI_${err.code.toUpperCase()}`;
+  if (stream) {
+    initSseReply(reply);
+    writeSseEvent(reply, "error", { code: apiCode, message: err.message });
+    endSseReply(reply);
+    return;
+  }
+  return reply.status(geminiErrorStatus(err.code)).send({
+    error: { code: apiCode, message: err.message },
+  });
+}
 
 export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
   await fastify.register(
@@ -19,6 +47,7 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
       });
 
       scope.post("/recipe-chat", async (req, reply) => {
+        const stream = wantsStream(req);
         const meta = collectChatRequestMeta(req);
         const parsed = recipeChatBodySchema.safeParse(req.body);
 
@@ -41,6 +70,15 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
               },
               (err) => fastify.log.warn({ err }, "recipe_chat log kaydedilemedi"),
             );
+          }
+          if (stream) {
+            initSseReply(reply);
+            writeSseEvent(reply, "error", {
+              code: "VALIDATION_ERROR",
+              message: "Geçersiz istek gövdesi",
+            });
+            endSseReply(reply);
+            return;
           }
           return reply.status(400).send({
             error: {
@@ -70,6 +108,15 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
             },
             (err) => fastify.log.warn({ err }, "recipe_chat log kaydedilemedi"),
           );
+          if (stream) {
+            initSseReply(reply);
+            writeSseEvent(reply, "error", {
+              code: "GEMINI_NOT_CONFIGURED",
+              message: "Yapay zekâ sohbeti şu an kullanılamıyor.",
+            });
+            endSseReply(reply);
+            return;
+          }
           return reply.status(503).send({
             error: {
               code: "GEMINI_NOT_CONFIGURED",
@@ -85,15 +132,49 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
           videoState: videoState ?? null,
         };
 
+        const abort = new AbortController();
+        req.raw.on("close", () => abort.abort());
+
+        const chatBase = {
+          apiKey,
+          model: fastify.config.geminiModel,
+          history,
+          userMessage: message,
+          currentStep,
+          videoState,
+          maxOutputTokens: fastify.config.geminiMaxOutputTokens,
+          signal: abort.signal,
+        };
+
         try {
-          const replyText = await generateRecipeChatReply({
-            apiKey,
-            model: fastify.config.geminiModel,
-            history,
-            userMessage: message,
-            currentStep,
-            videoState,
-          });
+          if (stream) {
+            initSseReply(reply);
+            const replyText = await streamRecipeChatReply({
+              ...chatBase,
+              onDelta: (text) => writeSseEvent(reply, "delta", { text }),
+            });
+
+            logChatConversation(
+              fastify.db,
+              {
+                channel: "recipe_chat",
+                sessionId: sessionId ?? null,
+                userMessage: message,
+                botReply: replyText,
+                history,
+                outcome: "ok",
+                context,
+                meta,
+              },
+              (err) => fastify.log.warn({ err }, "recipe_chat log kaydedilemedi"),
+            );
+
+            writeSseEvent(reply, "done", { reply: replyText });
+            endSseReply(reply);
+            return;
+          }
+
+          const replyText = await generateRecipeChatReply(chatBase);
 
           logChatConversation(
             fastify.db,
@@ -129,13 +210,7 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
               },
               (e) => fastify.log.warn({ err: e }, "recipe_chat log kaydedilemedi"),
             );
-            const status = err.code === "blocked" ? 422 : 502;
-            return reply.status(status).send({
-              error: {
-                code: `GEMINI_${err.code.toUpperCase()}`,
-                message: err.message,
-              },
-            });
+            return sendRecipeGeminiError(reply, err, stream);
           }
 
           logChatConversation(

@@ -14,7 +14,8 @@ export type BulletinSortKey =
   | "avg-asc"
   | "volume-desc"
   | "amount-desc"
-  | "change-desc";
+  | "change-desc"
+  | "count-desc";
 
 export type BulletinFilterState = {
   query: string;
@@ -35,6 +36,7 @@ export const DEFAULT_BULLETIN_FILTERS: BulletinFilterState = {
   amountFilter: "all",
   countFilter: "all",
   changeFilter: "all",
+  /** Varsayılan sıra: işlem adedi (yüksek → düşük) */
   sort: "default",
 };
 
@@ -69,7 +71,7 @@ export const CHANGE_FILTER_OPTIONS: { value: ChangeFilter; label: string }[] = [
 ];
 
 export const SORT_OPTIONS: { value: BulletinSortKey; label: string }[] = [
-  { value: "default", label: "İşlem hacmi" },
+  { value: "default", label: "İşlem adedi" },
   { value: "name-asc", label: "Ada göre (A→Z)" },
   { value: "avg-desc", label: "Ort. fiyat (yüksek)" },
   { value: "avg-asc", label: "Ort. fiyat (düşük)" },
@@ -195,6 +197,17 @@ export function compareByVolumeDesc(a: CurrentPriceRow, b: CurrentPriceRow): num
   return a.product_name.localeCompare(b.product_name, "tr");
 }
 
+export function compareByCountDesc(a: CurrentPriceRow, b: CurrentPriceRow): number {
+  const countDiff = (b.transaction_count ?? -Infinity) - (a.transaction_count ?? -Infinity);
+  if (countDiff !== 0) return countDiff;
+  const volumeDiff = (b.volume ?? -Infinity) - (a.volume ?? -Infinity);
+  if (volumeDiff !== 0) return volumeDiff;
+  const amountDiff =
+    (b.transaction_amount ?? -Infinity) - (a.transaction_amount ?? -Infinity);
+  if (amountDiff !== 0) return amountDiff;
+  return a.product_name.localeCompare(b.product_name, "tr");
+}
+
 function sortRows(rows: CurrentPriceRow[], sort: BulletinSortKey): CurrentPriceRow[] {
   const copy = [...rows];
   switch (sort) {
@@ -205,7 +218,6 @@ function sortRows(rows: CurrentPriceRow[], sort: BulletinSortKey): CurrentPriceR
     case "avg-asc":
       return copy.sort((a, b) => (a.avg_price ?? Infinity) - (b.avg_price ?? Infinity));
     case "volume-desc":
-    case "default":
       return copy.sort(compareByVolumeDesc);
     case "amount-desc":
       return copy.sort(
@@ -213,8 +225,11 @@ function sortRows(rows: CurrentPriceRow[], sort: BulletinSortKey): CurrentPriceR
       );
     case "change-desc":
       return copy.sort((a, b) => (b.change_pct ?? -Infinity) - (a.change_pct ?? -Infinity));
+    case "count-desc":
+    case "default":
+      return copy.sort(compareByCountDesc);
     default:
-      return copy.sort(compareByVolumeDesc);
+      return copy.sort(compareByCountDesc);
   }
 }
 

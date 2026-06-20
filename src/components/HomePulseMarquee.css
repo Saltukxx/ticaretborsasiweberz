@@ -65,6 +65,7 @@
   align-items: center;
   gap: clamp(28px, 4vw, 40px);
   white-space: nowrap;
+  will-change: transform;
   animation: pulseBarScroll var(--pulse-duration, 36s) linear infinite;
 }
 
@@ -84,6 +85,10 @@
 }
 
 .pulse-bar__viewport:hover .pulse-bar__track {
+  animation-play-state: paused;
+}
+
+.pulse-bar__viewport--scroll-pause .pulse-bar__track {
   animation-play-state: paused;
 }
 
@@ -169,6 +174,11 @@ a.pulse-bar__item:hover {
 }
 
 @media (max-width: 820px) {
+  .pulse-bar {
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.96);
+  }
+
   .pulse-bar__inner {
     grid-template-columns: minmax(0, 1fr) auto;
     grid-template-rows: auto auto;

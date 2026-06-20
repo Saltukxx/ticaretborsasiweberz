@@ -1,8 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   SITE_CHAT_SUGGESTIONS,
   useSiteChat,
 } from "../hooks/useSiteChat";
+import { useVisualViewport } from "../hooks/useVisualViewport";
 import { SiteChatMessageContent } from "../lib/siteChatMarkdown";
 import { ChatKvkkNotice } from "./ChatKvkkNotice";
 import "./SiteChatWidget.css";
@@ -43,6 +45,9 @@ export default function SiteChatWidget() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
+  const wasOpenRef = useRef(false);
+
+  useVisualViewport(open);
 
   useEffect(() => {
     if (!open) return;
@@ -64,12 +69,121 @@ export default function SiteChatWidget() {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, close]);
 
+  useEffect(() => {
+    if (wasOpenRef.current && !open) {
+      fabRef.current?.focus();
+    }
+    wasOpenRef.current = open;
+  }, [open]);
+
   const submit = () => {
     const t = draft.trim();
     if (!t) return;
     setDraft("");
     void sendMessage(t);
   };
+
+  const layer =
+    open &&
+    createPortal(
+      <>
+        <div className="site-chat-backdrop" onClick={close} aria-hidden />
+        <div
+          className="site-chat-panel site-chat-panel--open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+        >
+          <header className="site-chat-panel__header">
+            <div>
+              <h2 id={titleId} className="site-chat-panel__title">
+                Borsa Asistanı
+              </h2>
+              <p className="site-chat-panel__sub">
+                Haber · Duyuru · Etkinlik · Bülten
+              </p>
+            </div>
+            <button
+              type="button"
+              className="site-chat-panel__close"
+              onClick={close}
+              aria-label="Kapat"
+            >
+              <CloseIcon />
+            </button>
+          </header>
+
+          <div className="site-chat-panel__messages" ref={scrollRef} role="log">
+            {messages.map((msg) => (
+              <div
+                key={msg.id}
+                className={`site-chat-bubble site-chat-bubble--${msg.role}`}
+              >
+                <SiteChatMessageContent text={msg.content} />
+              </div>
+            ))}
+            {isTyping && (
+              <div className="site-chat-bubble site-chat-bubble--bot site-chat-typing">
+                <span />
+                <span />
+                <span />
+              </div>
+            )}
+          </div>
+
+          <div className="site-chat-panel__suggestions-wrap">
+            <p className="site-chat-panel__suggestions-label">Örnek sorular</p>
+            <div className="site-chat-panel__suggestions" aria-label="Örnek sorular">
+              {SITE_CHAT_SUGGESTIONS.map((label) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="site-chat-chip"
+                  onClick={() => void sendMessage(label)}
+                  disabled={isTyping}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <form
+            className="site-chat-panel__form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              submit();
+            }}
+          >
+            <textarea
+              ref={inputRef}
+              className="site-chat-panel__input"
+              rows={1}
+              value={draft}
+              placeholder="Sorunuzu yazın…"
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submit();
+                }
+              }}
+              disabled={isTyping}
+              aria-label="Mesaj"
+            />
+            <button
+              type="submit"
+              className="site-chat-panel__send"
+              disabled={isTyping || !draft.trim()}
+            >
+              Gönder
+            </button>
+          </form>
+          <ChatKvkkNotice className="site-chat-panel__kvkk" />
+        </div>
+      </>,
+      document.body,
+    );
 
   return (
     <>
@@ -85,105 +199,7 @@ export default function SiteChatWidget() {
           <ChatIcon />
         </button>
       )}
-
-      {open && (
-        <div className="site-chat-backdrop" onClick={close} aria-hidden />
-      )}
-
-      <div
-        className={`site-chat-panel${open ? " site-chat-panel--open" : ""}`}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        hidden={!open}
-      >
-        <header className="site-chat-panel__header">
-          <div>
-            <h2 id={titleId} className="site-chat-panel__title">
-              Borsa Asistanı
-            </h2>
-            <p className="site-chat-panel__sub">
-              Haber · Duyuru · Etkinlik · Bülten
-            </p>
-          </div>
-          <button
-            type="button"
-            className="site-chat-panel__close"
-            onClick={close}
-            aria-label="Kapat"
-          >
-            <CloseIcon />
-          </button>
-        </header>
-
-        <div className="site-chat-panel__messages" ref={scrollRef} role="log">
-          {messages.map((msg) => (
-            <div
-              key={msg.id}
-              className={`site-chat-bubble site-chat-bubble--${msg.role}`}
-            >
-              <SiteChatMessageContent text={msg.content} />
-            </div>
-          ))}
-          {isTyping && (
-            <div className="site-chat-bubble site-chat-bubble--bot site-chat-typing">
-              <span />
-              <span />
-              <span />
-            </div>
-          )}
-        </div>
-
-        <div className="site-chat-panel__suggestions-wrap">
-          <p className="site-chat-panel__suggestions-label">Örnek sorular</p>
-          <div className="site-chat-panel__suggestions" aria-label="Örnek sorular">
-            {SITE_CHAT_SUGGESTIONS.map((label) => (
-              <button
-                key={label}
-                type="button"
-                className="site-chat-chip"
-                onClick={() => void sendMessage(label)}
-                disabled={isTyping}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <form
-          className="site-chat-panel__form"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submit();
-          }}
-        >
-          <textarea
-            ref={inputRef}
-            className="site-chat-panel__input"
-            rows={1}
-            value={draft}
-            placeholder="Sorunuzu yazın…"
-            onChange={(e) => setDraft(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submit();
-              }
-            }}
-            disabled={isTyping}
-            aria-label="Mesaj"
-          />
-          <button
-            type="submit"
-            className="site-chat-panel__send"
-            disabled={isTyping || !draft.trim()}
-          >
-            Gönder
-          </button>
-        </form>
-        <ChatKvkkNotice className="site-chat-panel__kvkk" />
-      </div>
+      {layer}
     </>
   );
 }

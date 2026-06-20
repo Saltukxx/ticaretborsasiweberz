@@ -17,4 +17,8 @@ export const chatLogIdParamsSchema = z.object({
   id: z.string().uuid(),
 });
 
+export const chatLogSessionParamsSchema = z.object({
+  sessionId: z.string().min(1).max(64),
+});
+
 export type ChatLogListQuery = z.infer<typeof chatLogListQuerySchema>;

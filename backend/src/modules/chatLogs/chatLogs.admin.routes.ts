@@ -2,12 +2,14 @@ import type { FastifyInstance } from "fastify";
 import {
   chatLogIdParamsSchema,
   chatLogListQuerySchema,
+  chatLogSessionParamsSchema,
 } from "./chatLogs.admin.schema.js";
 import {
   CHAT_LOG_CSV_HEADERS,
   chatLogToCsvRow,
   getChatLogByIdAdmin,
   listChatLogsAdmin,
+  listChatLogsBySessionAdmin,
   listChatLogsForExport,
   toChatLogListItem,
 } from "./chatLogs.admin.service.js";
@@ -20,7 +22,7 @@ function csvEscape(value: string): string {
 }
 
 export async function adminChatLogsPlugin(fastify: FastifyInstance) {
-  fastify.addHook("preHandler", fastify.requireAdminAuth);
+  fastify.addHook("preHandler", fastify.requireSuperAdmin);
 
   fastify.get("/chat-logs", async (req, reply) => {
     const parsed = chatLogListQuerySchema.safeParse(req.query);
@@ -71,6 +73,21 @@ export async function adminChatLogsPlugin(fastify: FastifyInstance) {
       'attachment; filename="chat-logs.csv"',
     );
     return reply.send(`\uFEFF${lines.join("\n")}`);
+  });
+
+  fastify.get("/chat-logs/session/:sessionId", async (req, reply) => {
+    const params = chatLogSessionParamsSchema.safeParse(req.params);
+    if (!params.success) {
+      return reply.status(400).send({
+        error: { code: "VALIDATION_ERROR", message: "Geçersiz oturum id" },
+      });
+    }
+
+    const rows = await listChatLogsBySessionAdmin(
+      fastify.db,
+      params.data.sessionId,
+    );
+    return reply.send({ data: rows });
   });
 
   fastify.get("/chat-logs/:id", async (req, reply) => {

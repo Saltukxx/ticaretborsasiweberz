@@ -2,6 +2,7 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import { getClientIp } from "../../lib/clientIp.js";
 import { assertSuperAdmin } from "../../plugins/adminAuth.js";
 import { writeAudit } from "../../lib/audit.js";
+import { invalidateSiteChatCmsCache } from "../../lib/siteChatCache.js";
 import {
   createEvent,
   getEventByIdAdmin,
@@ -132,6 +133,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       diff: { after: { slug: result.row.slug } },
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.status(201).send({ data: result.row });
   });
@@ -180,6 +182,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       diff: { patch: body.data },
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -202,6 +205,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       entityId: result.row.id,
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -224,6 +228,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       entityId: result.row.id,
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -246,6 +251,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       entityId: result.row.id,
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -273,6 +279,7 @@ export async function adminEventsPlugin(fastify: FastifyInstance) {
       entityId: removed.id,
       ip: getClientIp(req),
     });
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.status(204).send();
   });

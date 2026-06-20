@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:lib": "tsx --test src/lib/priceDisplay.test.ts src/lib/bulletinFilters.test.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.10",
@@ -22,6 +23,7 @@
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
+    "tsx": "^4.19.3",
     "typescript": "^5.5.4",
     "vite": "^5.4.6"
   }

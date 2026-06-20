@@ -64,6 +64,12 @@ export async function getChatLogAdmin(id: string) {
   return apiRequest<ApiEnvelope<ChatLogDetail>>(`/api/v1/admin/chat-logs/${id}`);
 }
 
+export async function listChatLogsBySessionAdmin(sessionId: string) {
+  return apiRequest<ApiEnvelope<ChatLogDetail[]>>(
+    `/api/v1/admin/chat-logs/session/${encodeURIComponent(sessionId)}`,
+  );
+}
+
 export async function exportChatLogsAdmin(params: {
   channel?: ChatLogChannel;
   outcome?: ChatLogOutcome;

@@ -49,43 +49,43 @@ export async function fetchSiteChatCmsContext(
 ): Promise<SiteChatCmsContext> {
   const now = new Date();
 
-  const newsRows = await db
-    .select({
-      slug: news.slug,
-      title: news.title,
-      excerpt: news.excerpt,
-      category: news.category,
-      publishedAt: news.publishedAt,
-    })
-    .from(news)
-    .where(and(isNull(news.deletedAt), isNotNull(news.publishedAt)))
-    .orderBy(desc(news.publishedAt))
-    .limit(10);
-
-  const annRows = await db
-    .select({
-      slug: announcements.slug,
-      title: announcements.title,
-      body: announcements.body,
-      publishedAt: announcements.publishedAt,
-    })
-    .from(announcements)
-    .where(activeAnnouncementWhere(now))
-    .orderBy(desc(announcements.priority), desc(announcements.publishedAt))
-    .limit(8);
-
-  const eventRows = await db
-    .select({
-      slug: events.slug,
-      title: events.title,
-      description: events.description,
-      location: events.location,
-      startsAt: events.startsAt,
-    })
-    .from(events)
-    .where(upcomingPublicEventWhere(now))
-    .orderBy(events.startsAt)
-    .limit(8);
+  const [newsRows, annRows, eventRows] = await Promise.all([
+    db
+      .select({
+        slug: news.slug,
+        title: news.title,
+        excerpt: news.excerpt,
+        category: news.category,
+        publishedAt: news.publishedAt,
+      })
+      .from(news)
+      .where(and(isNull(news.deletedAt), isNotNull(news.publishedAt)))
+      .orderBy(desc(news.publishedAt))
+      .limit(10),
+    db
+      .select({
+        slug: announcements.slug,
+        title: announcements.title,
+        body: announcements.body,
+        publishedAt: announcements.publishedAt,
+      })
+      .from(announcements)
+      .where(activeAnnouncementWhere(now))
+      .orderBy(desc(announcements.priority), desc(announcements.publishedAt))
+      .limit(8),
+    db
+      .select({
+        slug: events.slug,
+        title: events.title,
+        description: events.description,
+        location: events.location,
+        startsAt: events.startsAt,
+      })
+      .from(events)
+      .where(upcomingPublicEventWhere(now))
+      .orderBy(events.startsAt)
+      .limit(8),
+  ]);
 
   return {
     fetchedAt: now.toISOString(),

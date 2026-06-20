@@ -36,6 +36,7 @@ const envSchema = z.object({
 
   GEMINI_API_KEY: z.string().optional(),
   GEMINI_MODEL: z.string().default("gemini-2.5-flash"),
+  GEMINI_MAX_OUTPUT_TOKENS: z.coerce.number().int().positive().default(512),
 
   DATABANK_BASE_URL: z.string().url().optional(),
   DATABANK_SYNC_ENABLED: z.string().optional(),
@@ -82,6 +83,7 @@ export type Config = {
   };
   geminiApiKey?: string;
   geminiModel: string;
+  geminiMaxOutputTokens: number;
   databankBaseUrl: string;
   databankSyncEnabled: boolean;
   databankRequestDelayMs: number;
@@ -154,6 +156,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     allowedOrigins: e.ALLOWED_ORIGINS,
     geminiApiKey: e.GEMINI_API_KEY?.trim() || undefined,
     geminiModel: e.GEMINI_MODEL.trim() || "gemini-2.5-flash",
+    geminiMaxOutputTokens: e.GEMINI_MAX_OUTPUT_TOKENS,
     databankBaseUrl:
       e.DATABANK_BASE_URL?.trim() ||
       "https://borsa.erzurumtb.org.tr/web/data/",

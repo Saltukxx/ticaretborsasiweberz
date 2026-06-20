@@ -32,6 +32,38 @@ Server IP: `5.180.186.186` (aktif)
 
 ---
 
+## Gemini (Kadayıf sohbeti + Borsa Asistanı)
+
+API anahtarı **asla** repoya commit edilmez. Production'da Kadayıf sohbeti ve site asistanı için sunucuda tanımlı olmalıdır.
+
+```powershell
+cd C:\Users\satog\OneDrive\Desktop\ticaretborsasi
+$env:ETB_SSH_PASSWORD='...'
+$env:GEMINI_API_KEY='AIza...'   # veya backend/.env içinde
+python scripts/set-server-gemini-key.py
+```
+
+Doğrulama (sunucuda):
+
+```bash
+curl -s -X POST http://127.0.0.1/api/v1/recipe-chat \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Malzemeler neler?","history":[]}' | head -c 200
+```
+
+`503` / `GEMINI_NOT_CONFIGURED` dönmemeli. Kadayıf sayfasında sohbet rozeti **Canlı yanıt** görünmeli (API erişilebilirken).
+
+Tarif bağlamı (`backend/src/data/kadayif-dolmasi-gemini-context.json`) frontend TS kaynağından üretilir:
+
+```powershell
+cd backend
+npm run sync:recipe-context
+```
+
+`npm run build` bu adımı otomatik çalıştırır (`prebuild`).
+
+---
+
 ## 1. Build Docker Images (local)
 
 ```powershell
@@ -70,10 +102,14 @@ scp -i "$HOME\.ssh\id_rsa_etb" etb-api.tar etb-frontend.tar etb-admin.tar docker
   root@139.59.156.88:/opt/etb/
 ```
 
-## 4. Server Setup (run once via DigitalOcean console or SSH)
+## 4. Server Setup (deprecated — use deploy-fresh-server.ps1)
+
+> **Deprecated:** Do not use this manual block for new installs. It previously documented weak defaults (`etb:etb`, Redis without password). Use [`scripts/deploy-fresh-server.ps1`](scripts/deploy-fresh-server.ps1) or [`scripts/_deploy_password_once.py`](scripts/_deploy_password_once.py) instead — they generate random `POSTGRES_PASSWORD`, `REDIS_PASSWORD`, and `JWT_SECRET`.
+
+If you must configure `.env` by hand, match [`docker-compose.server.yml`](docker-compose.server.yml) and [`scripts/deploy-fresh-server.ps1`](scripts/deploy-fresh-server.ps1):
 
 ```bash
-ssh -i ~/.ssh/id_rsa_etb root@139.59.156.88
+ssh root@5.180.186.186
 
 # Install Docker
 curl -fsSL https://get.docker.com | sh
@@ -84,26 +120,30 @@ docker load -i etb-api.tar
 docker load -i etb-frontend.tar
 docker load -i etb-admin.tar
 
-# Create .env
+# Create .env (replace CHANGE_ME_* with openssl rand -hex 16 / 32)
 cat > .env <<EOF
-DATABASE_URL=postgresql://etb:etb@db:5432/etb
-REDIS_URL=redis://cache:6379
-JWT_SECRET=replace-with-a-long-random-secret-min-32-chars
+POSTGRES_PASSWORD=CHANGE_ME_pg
+REDIS_PASSWORD=CHANGE_ME_redis
+DATABASE_URL=postgresql://etb:CHANGE_ME_pg@db:5432/etb
+REDIS_URL=redis://:CHANGE_ME_redis@cache:6379
+JWT_SECRET=CHANGE_ME_jwt_min_32_chars_random_hex
 NODE_ENV=production
-BASE_URL=http://139.59.156.88
+BASE_URL=http://5.180.186.186
 UPLOADS_DIR=/app/uploads
 COOKIE_SECURE=false
-ALLOWED_ORIGINS=http://139.59.156.88,http://139.59.156.88:8080
+TRUST_PROXY=true
+ALLOWED_ORIGINS=http://5.180.186.186,http://5.180.186.186:8080
 # GEMINI_API_KEY=your-google-ai-key
 # GEMINI_MODEL=gemini-2.5-flash
 EOF
-# BASE_URL: public URL for PDFs saved on server disk (/app/uploads, volume etb_uploads).
-# GEMINI_API_KEY: optional; powers POST /api/v1/recipe-chat on the Kadayıf interactive page.
-# PDFs are always stored locally; images may use R2 when configured.
-# Frontend/admin nginx proxy /api and /uploads to the api container (same-origin downloads).
+```
 
-# Start all services
+**Security note (HTTP, no domain yet):** Admin panel is on `http://5.180.186.186:8080` over plain HTTP. Session cookies and Bearer tokens can be intercepted on the network path until HTTPS is enabled (`COOKIE_SECURE=true` after domain + Let's Encrypt). Public site port 80 has the same limitation for any sensitive traffic.
+
+```bash
+# Start all services (after .env above)
 docker compose -f docker-compose.server.yml up -d
+```
 
 # Run database migrations (initial schema + incremental updates)
 docker exec -i $(docker compose -f docker-compose.server.yml ps -q db) psql -U etb -d etb < /opt/etb/0000_eager_jack_murdock.sql

@@ -1,0 +1,5 @@
+# Local override when port 80 is already in use (not for production VPS).
+services:
+  frontend:
+    ports:
+      - "8888:80"

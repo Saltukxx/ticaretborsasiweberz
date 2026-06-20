@@ -1,9 +1,11 @@
 import { useMemo, type CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { useScrollIdle } from "../hooks/useScrollIdle";
 import { useCurrencyRates, useCurrentPrices } from "../hooks/usePublicApi";
 import type { PublicCurrencyRate } from "../lib/publicApi";
-import { compareByVolumeDesc } from "../lib/bulletinFilters";
-import { marqueeDuration, marqueeHalfLength, marqueeLoop } from "../lib/marqueeLoop";
+import { compareByCountDesc } from "../lib/bulletinFilters";
+import { marqueeLoop } from "../lib/marqueeLoop";
+import { useStableMarqueeDuration } from "../lib/stableMarqueeDuration";
 import { formatChangePct, formatPrice, hasChangePct } from "../lib/priceDisplay";
 import "./HomePulseMarquee.css";
 
@@ -29,6 +31,7 @@ function rowDirection(changePct: number | null, direction: number | null): numbe
 }
 
 export default function HomeLiveMarketMarquee() {
+  const scrollIdle = useScrollIdle();
   const { data: currencies, isLoading: loadingFx, isError: errorFx, isFetched: fxFetched } =
     useCurrencyRates();
   const { data: prices, isLoading: loadingPrices, isFetched: pricesFetched } = useCurrentPrices();
@@ -46,7 +49,7 @@ export default function HomeLiveMarketMarquee() {
       });
     }
 
-    const topPrices = [...(prices ?? [])].sort(compareByVolumeDesc).slice(0, 14);
+    const topPrices = [...(prices ?? [])].sort(compareByCountDesc).slice(0, 14);
     for (const p of topPrices) {
       if (p.avg_price == null) continue;
       rows.push({
@@ -63,21 +66,27 @@ export default function HomeLiveMarketMarquee() {
 
   const allFetched = fxFetched && pricesFetched;
   const showLoading = items.length === 0 && (loadingFx || loadingPrices);
+  const loop = items.length > 0 ? marqueeLoop(items, 10) : [];
+  const duration = useStableMarqueeDuration(loop, "market");
 
   if ((errorFx && allFetched && items.length === 0) || (allFetched && items.length === 0)) {
     return null;
   }
 
-  const loop = items.length > 0 ? marqueeLoop(items, 10) : [];
-  const trackStyle = loop.length
-    ? ({
-        "--pulse-duration": `${marqueeDuration(marqueeHalfLength(loop), "market")}s`,
-      } as CSSProperties)
+  const trackStyle = duration
+    ? ({ "--pulse-duration": `${duration}s` } as CSSProperties)
     : undefined;
   const updatedAt = new Date().toLocaleTimeString("tr-TR", {
     hour: "2-digit",
     minute: "2-digit",
   });
+  const viewportClass = [
+    "pulse-bar__viewport",
+    showLoading ? "pulse-bar__viewport--loading" : "",
+    !scrollIdle ? "pulse-bar__viewport--scroll-pause" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section className="pulse-bar pulse-bar--market" aria-label="Canlı piyasa özeti">
@@ -87,7 +96,7 @@ export default function HomeLiveMarketMarquee() {
           Canlı Piyasa
         </span>
 
-        <div className={`pulse-bar__viewport${showLoading ? " pulse-bar__viewport--loading" : ""}`}>
+        <div className={viewportClass}>
           <div className={`pulse-bar__track${showLoading ? " pulse-bar__track--idle" : ""}`} style={trackStyle}>
             {showLoading ? (
               <span className="pulse-bar__loading mono" aria-hidden="true">

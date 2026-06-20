@@ -9,7 +9,7 @@ import {
   usePublicServiceAgreements,
 } from "../hooks/usePublicApi";
 import { prefetchPriceBulletin } from "../lib/prefetchBulletin";
-import { compareByVolumeDesc } from "../lib/bulletinFilters";
+import { compareByCountDesc } from "../lib/bulletinFilters";
 import { formatDisplayHeading } from "../lib/formatDisplayHeading";
 import {
   changeDirection,
@@ -26,10 +26,10 @@ export function HomePriceSummary() {
   const head = useReveal<HTMLDivElement>();
   const grid = useReveal<HTMLDivElement>();
   const { data: priceData } = useCurrentPrices();
-  // İşlem hacmine göre (miktar → tutar → ad) en yüksek 4 ürün.
+  // İşlem adedine göre en yüksek 4 ürün.
   const preview = useMemo(() => {
     const rows = [...(priceData ?? [])];
-    rows.sort(compareByVolumeDesc);
+    rows.sort(compareByCountDesc);
     return rows.slice(0, 4);
   }, [priceData]);
 

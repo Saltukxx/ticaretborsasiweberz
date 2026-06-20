@@ -7,7 +7,7 @@ const historyTurnSchema = z.object({
 
 export const siteChatBodySchema = z.object({
   message: z.string().trim().min(1).max(1000),
-  history: z.array(historyTurnSchema).max(8).default([]),
+  history: z.array(historyTurnSchema).max(6).default([]),
   sessionId: z.string().uuid().optional(),
 });
 

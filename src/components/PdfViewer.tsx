@@ -31,6 +31,10 @@ interface PdfViewerProps {
   downloadUrl?: string;
   /** Dosya adı / başlık etiketi */
   title?: string;
+  /** Başlangıç görünüm modu (varsayılan: metin) */
+  defaultViewMode?: ViewMode;
+  /** Metin modu seçeneğini göster (KVKK gibi resmi PDF'lerde false) */
+  allowTextMode?: boolean;
 }
 
 type LoadState =
@@ -363,7 +367,13 @@ function Thumb({
   );
 }
 
-export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
+export default function PdfViewer({
+  src,
+  downloadUrl,
+  title,
+  defaultViewMode = "text",
+  allowTextMode = true,
+}: PdfViewerProps) {
   const shellRef = useRef<HTMLDivElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [doc, setDoc] = useState<PDFDocumentProxy | null>(null);
@@ -371,7 +381,7 @@ export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
   const [zoomIdx, setZoomIdx] = useState(4); // 1.0
   const [currentPage, setCurrentPage] = useState(1);
   const [containerW, setContainerW] = useState(0);
-  const [viewMode, setViewMode] = useState<ViewMode>("text");
+  const [viewMode, setViewMode] = useState<ViewMode>(defaultViewMode);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const fullscreenSupported =
     typeof document !== "undefined" && document.fullscreenEnabled === true;
@@ -380,6 +390,7 @@ export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
 
   // Belgeyi yükle
   useEffect(() => {
+    setViewMode(defaultViewMode);
     let cancelled = false;
     setState({ phase: "loading", progress: 0 });
     setDoc(null);
@@ -402,7 +413,7 @@ export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
       cancelled = true;
       task.destroy().catch(() => {});
     };
-  }, [src]);
+  }, [src, defaultViewMode]);
 
   // Kapsayıcı genişliğini izle
   useEffect(() => {
@@ -513,6 +524,7 @@ export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
             </svg>
           </button>
           {title && <span className="pdfv__title">{title}</span>}
+          {allowTextMode && (
           <div className="pdfv__mode mono" role="group" aria-label="Görünüm modu">
             <button
               type="button"
@@ -531,6 +543,7 @@ export default function PdfViewer({ src, downloadUrl, title }: PdfViewerProps) {
               PDF
             </button>
           </div>
+          )}
         </div>
 
         <div className="pdfv__bar-center mono" aria-live="polite">

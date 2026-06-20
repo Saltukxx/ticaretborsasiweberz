@@ -14,7 +14,7 @@ import {
   formatVideoTime,
   videoProgressPercent,
 } from "../../lib/recipeVideoSync";
-import type { ChatMessage, VideoProgress } from "../../hooks/useRecipeChat";
+import type { ChatMessage, RecipeChatReplyMode, VideoProgress } from "../../hooks/useRecipeChat";
 import { ChatKvkkNotice } from "../ChatKvkkNotice";
 import type { RecipeStep } from "../../data/kadayif-dolmasi-recipe";
 
@@ -198,6 +198,8 @@ interface ChatProps {
   isVideoPlaying?: boolean;
   awaitingContinue?: boolean;
   suggestions?: string[];
+  replyMode?: RecipeChatReplyMode;
+  onResetChat?: () => void;
   onSend: (text: string) => void;
   onNext: () => void;
   onPrev: () => void;
@@ -221,6 +223,8 @@ export function RecipeChat({
   isVideoPlaying = false,
   awaitingContinue = false,
   suggestions,
+  replyMode = "live",
+  onResetChat,
   onSend,
   onNext,
   onPrev,
@@ -272,6 +276,27 @@ export function RecipeChat({
         <div className="kd-chat__header-info">
           <strong>Kültürel Anlatıcı</strong>
           <span className="mono">Erzurum Ticaret Borsası</span>
+        </div>
+        <div className="kd-chat__header-actions">
+          <span
+            className={`kd-chat__reply-badge kd-chat__reply-badge--${replyMode}`}
+            title={
+              replyMode === "live"
+                ? "Yanıtlar yapay zekâ sunucusu üzerinden geliyor"
+                : "Yanıtlar yerel rehber modunda (API kullanılamıyor)"
+            }
+          >
+            {replyMode === "live" ? "Canlı yanıt" : "Yerel rehber"}
+          </span>
+          {onResetChat && (
+            <button
+              type="button"
+              className="kd-chat__reset-btn"
+              onClick={onResetChat}
+            >
+              Sohbeti temizle
+            </button>
+          )}
         </div>
         <div className="kd-chat__header-status">
           <span

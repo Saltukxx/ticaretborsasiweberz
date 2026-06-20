@@ -128,7 +128,11 @@ export async function fetchBulletinPayload(
      AND pe.avg_price IS NOT NULL
      AND pe.avg_price > 0
     WHERE cp.is_active = true
-    ORDER BY cp.sort_order ASC, cp.name ASC
+    ORDER BY
+      pe.transaction_count DESC NULLS LAST,
+      pe.volume DESC NULLS LAST,
+      pe.transaction_amount DESC NULLS LAST,
+      cp.name ASC
   `);
   const raw = extractRows(result);
   let rows = mapBulletinRows(raw).filter(isPublishablePublicRow);

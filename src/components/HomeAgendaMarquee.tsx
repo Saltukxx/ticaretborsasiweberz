@@ -1,23 +1,32 @@
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
+import { useScrollIdle } from "../hooks/useScrollIdle";
 import { useNewsList } from "../hooks/usePublicApi";
 import { HOME_PULSE_NEWS_LIMIT } from "../lib/prefetchHomePulse";
-import { marqueeDuration, marqueeHalfLength, marqueeLoop } from "../lib/marqueeLoop";
+import { marqueeLoop } from "../lib/marqueeLoop";
+import { useStableMarqueeDuration } from "../lib/stableMarqueeDuration";
 import "./HomePulseMarquee.css";
 
 export default function HomeAgendaMarquee() {
+  const scrollIdle = useScrollIdle();
   const { data, isLoading, isError, isFetched } = useNewsList(HOME_PULSE_NEWS_LIMIT);
   const news = data ?? [];
+  const loop = news.length > 0 ? marqueeLoop(news) : [];
+  const duration = useStableMarqueeDuration(loop, "agenda");
 
   if (isError || (isFetched && news.length === 0)) return null;
 
-  const loop = news.length > 0 ? marqueeLoop(news) : [];
-  const trackStyle = loop.length
-    ? ({
-        "--pulse-duration": `${marqueeDuration(marqueeHalfLength(loop), "agenda")}s`,
-      } as CSSProperties)
+  const trackStyle = duration
+    ? ({ "--pulse-duration": `${duration}s` } as CSSProperties)
     : undefined;
   const showLoading = isLoading && news.length === 0;
+  const viewportClass = [
+    "pulse-bar__viewport",
+    showLoading ? "pulse-bar__viewport--loading" : "",
+    !scrollIdle ? "pulse-bar__viewport--scroll-pause" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <section className="pulse-bar pulse-bar--agenda" aria-label="Haber gündemi">
@@ -27,7 +36,7 @@ export default function HomeAgendaMarquee() {
           <span className="pulse-bar__label-text">Gündem çizgisi</span>
         </span>
 
-        <div className={`pulse-bar__viewport${showLoading ? " pulse-bar__viewport--loading" : ""}`}>
+        <div className={viewportClass}>
           <div className={`pulse-bar__track${showLoading ? " pulse-bar__track--idle" : ""}`} style={trackStyle}>
             {showLoading ? (
               <span className="pulse-bar__loading mono" aria-hidden="true">

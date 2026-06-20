@@ -1,3 +1,4 @@
+import { ChatStreamError, consumeChatStream } from "./chatStream";
 import { getBase } from "./recipeChatApiBase";
 import type { RecipeVideoState } from "./recipeVideoControl";
 
@@ -34,9 +35,7 @@ function mapStatusToCode(status: number, apiCode?: string): RecipeChatErrorCode 
   return "http";
 }
 
-import { stripVideoControlBlocks } from "./recipeVideoControl";
-
-export async function postRecipeChat(
+async function postRecipeChatJson(
   message: string,
   history: RecipeChatHistoryTurn[],
   signal?: AbortSignal,
@@ -88,6 +87,116 @@ export async function postRecipeChat(
   }
 
   return reply;
+}
+
+export async function postRecipeChatStream(
+  message: string,
+  history: RecipeChatHistoryTurn[],
+  onDelta: (text: string) => void,
+  signal?: AbortSignal,
+  currentStep?: number,
+  videoState?: RecipeVideoState,
+  sessionId?: string,
+): Promise<string> {
+  const url = `${getBase()}/api/v1/recipe-chat?stream=1`;
+  const done = await consumeChatStream(
+    url,
+    {
+      message,
+      history,
+      ...(sessionId ? { sessionId } : {}),
+      ...(currentStep !== undefined ? { currentStep } : {}),
+      ...(videoState ? { videoState } : {}),
+    },
+    { onDelta },
+    signal,
+  );
+  return done.reply.trim();
+}
+
+export async function postRecipeChat(
+  message: string,
+  history: RecipeChatHistoryTurn[],
+  signal?: AbortSignal,
+  currentStep?: number,
+  videoState?: RecipeVideoState,
+  sessionId?: string,
+  onDelta?: (text: string) => void,
+): Promise<string> {
+  if (onDelta) {
+    try {
+      return await postRecipeChatStream(
+        message,
+        history,
+        onDelta,
+        signal,
+        currentStep,
+        videoState,
+        sessionId,
+      );
+    } catch (err) {
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      if (isAbort) throw err;
+      if (err instanceof ChatStreamError) {
+        if (
+          err.code === "STREAM_UNSUPPORTED" ||
+          err.code === "network" ||
+          err.code === "STREAM_INCOMPLETE"
+        ) {
+          return postRecipeChatJson(
+            message,
+            history,
+            signal,
+            currentStep,
+            videoState,
+            sessionId,
+          );
+        }
+        throw new RecipeChatApiError(
+          err.message,
+          mapStatusToCode(502, err.code),
+        );
+      }
+      if (err instanceof RecipeChatApiError) throw err;
+      throw new RecipeChatApiError(
+        err instanceof Error ? err.message : "Bağlantı hatası",
+        "unknown",
+      );
+    }
+  }
+
+  try {
+    return await postRecipeChatStream(
+      message,
+      history,
+      () => {},
+      signal,
+      currentStep,
+      videoState,
+      sessionId,
+    );
+  } catch (err) {
+    const isAbort = err instanceof Error && err.name === "AbortError";
+    if (isAbort) throw err;
+    if (err instanceof ChatStreamError) {
+      if (
+        err.code === "STREAM_UNSUPPORTED" ||
+        err.code === "network" ||
+        err.code === "STREAM_INCOMPLETE"
+      ) {
+        return postRecipeChatJson(
+          message,
+          history,
+          signal,
+          currentStep,
+          videoState,
+          sessionId,
+        );
+      }
+      throw new RecipeChatApiError(err.message, mapStatusToCode(502, err.code));
+    }
+    throw err;
+  }
 }
 
 /** Gemini bazen kaynak atıfı ekler; kullanıcıya gösterilmez. */

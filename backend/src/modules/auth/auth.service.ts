@@ -24,6 +24,59 @@ function loginLockKey(prefix: string, ip: string): string {
   return `${prefix}login:lock:${ip}`;
 }
 
+function loginFailEmailKey(prefix: string, email: string): string {
+  return `${prefix}login:fail:email:${email}`;
+}
+
+function loginLockEmailKey(prefix: string, email: string): string {
+  return `${prefix}login:lock:email:${email}`;
+}
+
+async function isLoginLocked(
+  redis: RedisClient,
+  prefix: string,
+  ip: string,
+  email: string,
+): Promise<boolean> {
+  const ipLocked = await redis.get(loginLockKey(prefix, ip));
+  if (ipLocked) return true;
+  const emailLocked = await redis.get(loginLockEmailKey(prefix, email));
+  return Boolean(emailLocked);
+}
+
+async function recordLoginFailure(
+  redis: RedisClient,
+  prefix: string,
+  ip: string,
+  email: string,
+): Promise<void> {
+  const ipFailKey = loginFailKey(prefix, ip);
+  const ipCount = await redis.incr(ipFailKey);
+  if (ipCount === 1) await redis.expire(ipFailKey, LOGIN_FAIL_WINDOW_SEC);
+  if (ipCount >= LOGIN_FAIL_MAX) {
+    await redis.set(loginLockKey(prefix, ip), "1", "EX", LOGIN_LOCK_SEC);
+    await redis.del(ipFailKey);
+  }
+
+  const emailFailKey = loginFailEmailKey(prefix, email);
+  const emailCount = await redis.incr(emailFailKey);
+  if (emailCount === 1) await redis.expire(emailFailKey, LOGIN_FAIL_WINDOW_SEC);
+  if (emailCount >= LOGIN_FAIL_MAX) {
+    await redis.set(loginLockEmailKey(prefix, email), "1", "EX", LOGIN_LOCK_SEC);
+    await redis.del(emailFailKey);
+  }
+}
+
+async function clearLoginFailures(
+  redis: RedisClient,
+  prefix: string,
+  ip: string,
+  email: string,
+): Promise<void> {
+  await redis.del(loginFailKey(prefix, ip));
+  await redis.del(loginFailEmailKey(prefix, email));
+}
+
 export async function hashPassword(plain: string): Promise<string> {
   return bcrypt.hash(plain, BCRYPT_ROUNDS);
 }
@@ -58,16 +111,14 @@ export async function loginAdmin(
   },
 ): Promise<LoginResult> {
   const prefix = config.redisPrefix;
-  const lockKey = loginLockKey(prefix, params.ip);
+  const normalizedEmail = params.email.trim().toLowerCase();
 
   if (redis) {
-    const locked = await redis.get(lockKey);
-    if (locked) {
+    if (await isLoginLocked(redis, prefix, params.ip, normalizedEmail)) {
       return { ok: false, reason: "locked" };
     }
   }
 
-  const normalizedEmail = params.email.trim().toLowerCase();
   const [row] = await db
     .select()
     .from(admins)
@@ -83,19 +134,13 @@ export async function loginAdmin(
 
   if (!passwordOk || !row || !row.isActive) {
     if (redis) {
-      const fk = loginFailKey(prefix, params.ip);
-      const n = await redis.incr(fk);
-      if (n === 1) await redis.expire(fk, LOGIN_FAIL_WINDOW_SEC);
-      if (n >= LOGIN_FAIL_MAX) {
-        await redis.set(lockKey, "1", "EX", LOGIN_LOCK_SEC);
-        await redis.del(fk);
-      }
+      await recordLoginFailure(redis, prefix, params.ip, normalizedEmail);
     }
     return { ok: false, reason: "invalid_credentials" };
   }
 
   if (redis) {
-    await redis.del(loginFailKey(prefix, params.ip));
+    await clearLoginFailures(redis, prefix, params.ip, normalizedEmail);
   }
 
   const { raw, hash } = randomRefreshToken();

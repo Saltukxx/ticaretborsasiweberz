@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import PageHero from "../components/PageHero";
 import SeoHead from "../components/SeoHead";
+import { useReveal } from "../hooks/useReveal";
 import {
   KVKK_DOCUMENTS,
   kvkkDocumentPagePath,
@@ -10,6 +11,8 @@ import "../components/CorporateDocumentsSection.css";
 import "./KvkkHubPage.css";
 
 export default function KvkkHubPage() {
+  const panelRef = useReveal<HTMLDivElement>();
+
   return (
     <>
       <SeoHead
@@ -26,7 +29,7 @@ export default function KvkkHubPage() {
 
       <section className="corp-docs kvkk-hub">
         <div className="container">
-          <div className="corp-docs__panel card kvkk-hub__panel reveal">
+          <div className="corp-docs__panel card kvkk-hub__panel reveal" ref={panelRef}>
             <header className="corp-docs__panel-head">
               <div>
                 <span className="mono corp-docs__panel-eyebrow">Resmi PDF belgeler</span>

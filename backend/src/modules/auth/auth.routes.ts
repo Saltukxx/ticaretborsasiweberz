@@ -44,6 +44,15 @@ export async function authRoutes(app: FastifyInstance) {
       await loginScope.register(rateLimit, {
         max: 10,
         timeWindow: 15 * 60 * 1000,
+        keyGenerator: (req) => {
+          const ip = getClientIp(req);
+          const body = req.body as { email?: unknown } | undefined;
+          const email =
+            typeof body?.email === "string"
+              ? body.email.trim().toLowerCase()
+              : "";
+          return email ? `${ip}:${email}` : ip;
+        },
       });
 
       loginScope.post("/login", async (req, reply) => {

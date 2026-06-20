@@ -32,6 +32,8 @@ export default function KadayifDolmasiPage() {
     onVideoPlay,
     onVideoPause,
     onProgressSeek,
+    replyMode,
+    resetChat,
   } = useRecipeChat();
 
   const recipe = kadayifDolmasiRecipe;
@@ -113,6 +115,8 @@ export default function KadayifDolmasiPage() {
               suggestions={
                 currentStep > 0 ? currentStepData.suggestedQuestions : undefined
               }
+              replyMode={replyMode}
+              onResetChat={resetChat}
               onSend={sendMessage}
               onNext={nextStep}
               onPrev={prevStep}

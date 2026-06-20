@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Sparkline from "./Sparkline";
 import { useCountUp } from "../hooks/useReveal";
+import { useDebouncedValue } from "../hooks/useDebouncedValue";
+import { useScrollIdle } from "../hooks/useScrollIdle";
 import {
   useCurrentPrices,
   usePriceBulletin,
@@ -11,6 +13,16 @@ import {
   type MosaicCell,
 } from "../lib/heroMosaicData";
 import "./HeroMosaic.css";
+
+const PLACEHOLDER_CELLS: MosaicCell[][] = Array.from({ length: 7 }, () => [
+  {
+    eyebrow: "—",
+    title: "Yükleniyor",
+    value: "—",
+    detail: "Veri bekleniyor",
+    tone: "blue" as const,
+  },
+]);
 
 function CountUpValue({ target, fallback }: { target: number; fallback: string }) {
   const ref = useCountUp(target, 1400, true);
@@ -75,10 +87,12 @@ function MosaicCellView({
 }
 
 export default function HeroMosaic() {
+  const scrollIdle = useScrollIdle();
   const pricesQ = useCurrentPrices();
   const bulletinQ = usePriceBulletin(true);
   const statsQ = usePublicStats();
-  const mosaicCells: MosaicCell[][] = useMemo(
+
+  const rawCells: MosaicCell[][] = useMemo(
     () =>
       buildHeroMosaicCells({
         prices: pricesQ.data ?? [],
@@ -87,6 +101,16 @@ export default function HeroMosaic() {
       }),
     [pricesQ.data, bulletinQ.data, statsQ.data],
   );
+
+  const mosaicCells = useDebouncedValue(rawCells, 300);
+  const hasLiveData =
+    (pricesQ.data?.length ?? 0) > 0 ||
+    bulletinQ.data != null ||
+    (statsQ.data?.length ?? 0) > 0;
+  const isInitialLoad =
+    !hasLiveData &&
+    (pricesQ.isLoading || bulletinQ.isLoading || statsQ.isLoading);
+  const displayCells = isInitialLoad ? PLACEHOLDER_CELLS : mosaicCells;
 
   const reducedMotion = useMemo(
     () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches,
@@ -97,9 +121,9 @@ export default function HeroMosaic() {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
-    setFlipKeys(Array(mosaicCells.length).fill(0));
-    setVariants(Array(mosaicCells.length).fill(0));
-  }, [mosaicCells.length]);
+    setFlipKeys(Array(displayCells.length).fill(0));
+    setVariants(Array(displayCells.length).fill(0));
+  }, [displayCells.length]);
 
   useEffect(() => {
     const clock = window.setInterval(() => setNow(new Date()), 60000);
@@ -107,14 +131,14 @@ export default function HeroMosaic() {
   }, []);
 
   useEffect(() => {
-    if (reducedMotion || mosaicCells.length === 0) return;
+    if (reducedMotion || displayCells.length === 0 || !scrollIdle || isInitialLoad) return;
 
     const id = window.setInterval(() => {
-      const index = Math.floor(Math.random() * mosaicCells.length);
+      const index = Math.floor(Math.random() * displayCells.length);
       setFlipKeys((keys) => keys.map((key, i) => (i === index ? key + 1 : key)));
       setVariants((items) =>
         items.map((item, i) => {
-          const variantsForCell = mosaicCells[i]?.length ?? 1;
+          const variantsForCell = displayCells[i]?.length ?? 1;
           if (variantsForCell <= 1) return 0;
           return i === index ? (item + 1) % variantsForCell : item;
         }),
@@ -122,14 +146,14 @@ export default function HeroMosaic() {
     }, 4800);
 
     return () => window.clearInterval(id);
-  }, [reducedMotion, mosaicCells]);
+  }, [reducedMotion, displayCells, scrollIdle, isInitialLoad]);
 
   const time = now.toLocaleTimeString("tr-TR", { hour: "2-digit", minute: "2-digit" });
 
   return (
     <div className="hmosaic" aria-label="Güncel piyasa özeti">
       <div className="hmosaic__grid">
-        {mosaicCells.map((variantsForCell, index) => (
+        {displayCells.map((variantsForCell, index) => (
           <MosaicCellView
             key={index}
             index={index}

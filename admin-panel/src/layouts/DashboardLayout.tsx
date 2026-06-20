@@ -11,7 +11,10 @@ import {
 import { cn } from "@/lib/utils";
 import { useSidebarStore } from "@/stores/uiStore";
 
-const navSections: { label: string; items: { to: string; label: string }[] }[] = [
+const navSections: {
+  label: string;
+  items: { to: string; label: string; superAdminOnly?: boolean }[];
+}[] = [
   {
     label: "Genel",
     items: [
@@ -35,7 +38,7 @@ const navSections: { label: string; items: { to: string; label: string }[] }[] =
     label: "Piyasa",
     items: [
       { to: "/prices", label: "Fiyatlar" },
-      { to: "/databank-sync", label: "DataBank senkron" },
+      { to: "/databank-sync", label: "DataBank senkron", superAdminOnly: true },
       { to: "/currency-rates", label: "Döviz kurları" },
     ],
   },
@@ -47,7 +50,7 @@ const navSections: { label: string; items: { to: string; label: string }[] }[] =
       { to: "/corporate-content", label: "Kurumsal içerik" },
       { to: "/corporate-documents", label: "Kurumsal belgeler" },
       { to: "/contact-submissions", label: "İletişim mesajları" },
-      { to: "/chat-logs", label: "Sohbet kayıtları" },
+      { to: "/chat-logs", label: "Sohbet kayıtları", superAdminOnly: true },
       { to: "/newsletter-subscribers", label: "E-bülten aboneleri" },
       { to: "/legal-pages", label: "Yasal sayfalar" },
       { to: "/map-districts", label: "Bölgesel harita" },
@@ -59,8 +62,8 @@ const navSections: { label: string; items: { to: string; label: string }[] }[] =
     label: "Ayarlar",
     items: [
       { to: "/settings", label: "Hesap" },
-      { to: "/settings/admins", label: "Yöneticiler" },
-      { to: "/settings/audit-log", label: "Denetim günlüğü" },
+      { to: "/settings/admins", label: "Yöneticiler", superAdminOnly: true },
+      { to: "/settings/audit-log", label: "Denetim günlüğü", superAdminOnly: true },
     ],
   },
 ];
@@ -90,6 +93,16 @@ export function DashboardLayout() {
   const navigate = useNavigate();
   const collapsed = useSidebarStore((s) => s.collapsed);
   const toggleSidebar = useSidebarStore((s) => s.toggle);
+  const isSuperAdmin = user?.role === "super_admin";
+
+  const visibleSections = navSections
+    .map((sec) => ({
+      ...sec,
+      items: sec.items.filter(
+        (item) => !item.superAdminOnly || isSuperAdmin,
+      ),
+    }))
+    .filter((sec) => sec.items.length > 0);
 
   return (
     <div className="flex min-h-screen bg-zinc-50">
@@ -104,7 +117,7 @@ export function DashboardLayout() {
           {!collapsed && <span className="font-semibold text-zinc-900">ETB Admin</span>}
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto p-3">
-          {navSections.map((sec) => (
+          {visibleSections.map((sec) => (
             <div key={sec.label}>
               {!collapsed && (
                 <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-wide text-zinc-400">

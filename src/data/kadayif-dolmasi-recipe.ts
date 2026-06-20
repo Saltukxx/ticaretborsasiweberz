@@ -198,46 +198,21 @@ export const kadayifDolmasiRecipe: Recipe = {
   ],
 };
 
-const { heroImage: _omitHeroImageForGeminiTokens, videoCredit: _omitCredit, ...recipeWithoutUiOnly } =
-  kadayifDolmasiRecipe;
-void _omitHeroImageForGeminiTokens;
-void _omitCredit;
+/** Gemini/backend JSON — UI-only alanlar hariç tarif yükü. */
+export function buildKadayifGeminiContextPayload() {
+  const {
+    heroImage: _heroImage,
+    videoCredit: _videoCredit,
+    ...recipeWithoutUiOnly
+  } = kadayifDolmasiRecipe;
+  void _heroImage;
+  void _videoCredit;
 
-const recipePayloadForGeminiContext = {
-  ...recipeWithoutUiOnly,
-  steps: recipeWithoutUiOnly.steps.map(
-    ({ suggestedQuestions: _omitUiOnlyChips, ...step }) => {
-      void _omitUiOnlyChips;
+  return {
+    ...recipeWithoutUiOnly,
+    steps: recipeWithoutUiOnly.steps.map(({ suggestedQuestions: _chips, ...step }) => {
+      void _chips;
       return step;
-    },
-  ),
-};
-
-/** Yetkili veri — Gemini yalnızca buna dayanmalıdır. */
-export const geminiRecipeContextBlock = [
-  "### CONTEXT (Tek yetkili veri seti — uydurma yok)",
-  "Aşağıdaki JSON dışındaki iddialarda spekülasyon yapma; bilgi yoksa kısaca söyle.",
-  "Video sessizdir; adımlar Kadayıfçı Harun Usta atölye görüntülerine dayanır.",
-  "```json",
-  JSON.stringify(recipePayloadForGeminiContext, null, 2),
-  "```",
-].join("\n");
-
-/** Persona + bağlam dışı sınırlar (CONTEXT ayrı eklenir). */
-export const geminiRecipeNarratorInstruction = `Sen, Erzurum Ticaret Borsası'nın dijital platformunda görev yapan bir kültürel anlatıcısın. Yalnızca "Kadayıf Dolması" coğrafi işaretli ürünü, Erzurum mutfak kültürü ve bu ürünün tescili ile ilgili sorulara yanıt verirsin.
-
-Kişiliğin:
-- Resmi ama sıcak Türkçe; emoji kullanma
-- Erzurum kültürel mirasına saygılı; halka yakın ama doğru dil
-- Sorulara sabırla, kısa ve öz ama bilgilendirici yanıt ver
-
-Kesin kurallar:
-1. Olgusal iddialar (malzeme, süre, teknik, tescil, menşe) için YALNIZCA CONTEXT içindeki veriyi kullan. CONTEXT'te yoksa: "Paylaşılan bilgilerde bu konu yer almıyor." gibi kısa bir ifadeyle sınırlı kal; tahmin veya genel web bilgisi uydurma.
-2. Konu dışı sorularda (başka şehir, alışveriş adresi, siyaset, tıbbi teşhis vb.) nazikçe bu sohbetin kapsamı dışında olduğunu belirt.
-3. Yanıtlarda **kalın**, _italik_ ve madde işaretleri kullanabilirsin (arayüz bunları gösterir).`;
-
-export function buildGeminiRecipeFullSystemInstruction(): string {
-  return `${geminiRecipeNarratorInstruction}\n\n${geminiRecipeContextBlock}`;
+    }),
+  };
 }
-
-export const chatbotSystemPrompt = buildGeminiRecipeFullSystemInstruction();

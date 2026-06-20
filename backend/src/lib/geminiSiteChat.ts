@@ -1,4 +1,8 @@
 import type { SiteChatHistoryTurn } from "../modules/siteChat/siteChat.schema.js";
+import {
+  appendShortResponseHint,
+  DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+} from "./geminiStream.js";
 
 export type GeminiSiteChatErrorCode =
   | "network"
@@ -52,10 +56,18 @@ export async function generateSiteChatReply(options: {
   systemInstruction: string;
   history: SiteChatHistoryTurn[];
   userMessage: string;
+  maxOutputTokens?: number;
   signal?: AbortSignal;
 }): Promise<string> {
-  const { apiKey, model = DEFAULT_MODEL, systemInstruction, history, userMessage, signal } =
-    options;
+  const {
+    apiKey,
+    model = DEFAULT_MODEL,
+    systemInstruction,
+    history,
+    userMessage,
+    maxOutputTokens = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+    signal,
+  } = options;
 
   const contents: GenerateContentMessage[] = [
     ...history.map((turn) => ({
@@ -67,12 +79,12 @@ export async function generateSiteChatReply(options: {
 
   const body = {
     systemInstruction: {
-      parts: [{ text: systemInstruction }],
+      parts: [{ text: appendShortResponseHint(systemInstruction) }],
     },
     contents,
     generationConfig: {
       temperature: 0.4,
-      maxOutputTokens: 1024,
+      maxOutputTokens,
       topP: 0.95,
       topK: 40,
     },

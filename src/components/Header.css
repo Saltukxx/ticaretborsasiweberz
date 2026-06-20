@@ -190,17 +190,9 @@
   }
 }
 
-.site-header.is-scrolled .header__inner {
-  padding-top: 12px;
-}
-
 @media (min-width: 1181px) {
   .header__inner {
     padding-bottom: 14px;
-  }
-
-  .site-header.is-scrolled .header__inner {
-    padding-bottom: 10px;
   }
 
   .header__nav-shell {
@@ -454,10 +446,6 @@
   .header__inner {
     gap: 12px;
     padding: 18px 0;
-  }
-
-  .site-header.is-scrolled .header__inner {
-    padding: 12px 0;
   }
 
   .header__nav-shell {

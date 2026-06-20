@@ -1,12 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  GREETING_REPLY,
   OFF_TOPIC_REPLY,
   OUT_OF_SCOPE_REPLY,
+  THANKS_REPLY,
   classifySiteChatIntent,
 } from "./siteChat.router.js";
 import { buildPriceReply } from "./siteChat.priceHandler.js";
 import type { CurrentPriceRow } from "../prices/prices.public.service.js";
+import {
+  SITE_CHAT_CMS_TTL_SEC,
+  siteChatCmsCacheKey,
+} from "../../lib/siteChatCache.js";
 
 test("classifySiteChatIntent price queries", () => {
   assert.equal(classifySiteChatIntent("Patates fiyatı ne?"), "price");
@@ -24,13 +30,27 @@ test("classifySiteChatIntent off topic", () => {
   assert.equal(classifySiteChatIntent("Bugday alayim mi?"), "off_topic");
 });
 
+test("classifySiteChatIntent greeting and thanks", () => {
+  assert.equal(classifySiteChatIntent("Merhaba"), "greeting");
+  assert.equal(classifySiteChatIntent("Merhaba nasılsın"), "greeting");
+  assert.equal(classifySiteChatIntent("Teşekkürler"), "thanks");
+  assert.equal(classifySiteChatIntent("Sağol"), "thanks");
+});
+
 test("classifySiteChatIntent out of scope", () => {
-  assert.equal(classifySiteChatIntent("Merhaba nasılsın"), "out_of_scope");
+  assert.equal(classifySiteChatIntent("Nasılsın"), "out_of_scope");
 });
 
 test("static replies are non-empty", () => {
   assert.ok(OFF_TOPIC_REPLY.length > 20);
   assert.ok(OUT_OF_SCOPE_REPLY.length > 20);
+  assert.ok(GREETING_REPLY.length > 20);
+  assert.ok(THANKS_REPLY.length > 20);
+});
+
+test("site chat cms cache key", () => {
+  assert.equal(siteChatCmsCacheKey("etb:"), "etb:cache:site-chat:cms");
+  assert.equal(SITE_CHAT_CMS_TTL_SEC, 300);
 });
 
 function sampleRow(

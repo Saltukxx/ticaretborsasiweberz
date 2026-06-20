@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getChatSessionId } from "../lib/chatSessionId";
+import { lockBodyScroll, unlockBodyScroll } from "../lib/bodyScrollLock";
 import {
   postSiteChat,
   SiteChatApiError,
   type SiteChatHistoryTurn,
 } from "../lib/siteChatApi";
 
-const HISTORY_MAX = 8;
+const HISTORY_MAX = 6;
 const STORAGE_KEY = "etb:site-chat:messages";
+const MOBILE_MQ = "(max-width: 720px)";
 
 export type SiteChatMessage = {
   id: string;
@@ -22,8 +24,8 @@ const WELCOME =
 export const SITE_CHAT_SUGGESTIONS = [
   "Son duyurular?",
   "Yaklaşan etkinlikler?",
-  "Patates fiyatı?",
   "Bugün bültende neler var?",
+  "Güncel bülten fiyatları?",
 ];
 
 function uid(): string {
@@ -75,12 +77,23 @@ export function useSiteChat() {
   }, [messages]);
 
   useEffect(() => {
+    const root = document.documentElement;
+    if (open) {
+      root.classList.add("site-chat-open");
+    } else {
+      root.classList.remove("site-chat-open");
+    }
+    return () => root.classList.remove("site-chat-open");
+  }, [open]);
+
+  useEffect(() => {
     if (!open) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+
+    const mq = window.matchMedia(MOBILE_MQ);
+    if (!mq.matches) return;
+
+    lockBodyScroll("site-chat");
+    return () => unlockBodyScroll("site-chat");
   }, [open]);
 
   const sendMessage = useCallback(
@@ -102,6 +115,9 @@ export function useSiteChat() {
       setMessages((prev) => [...prev, user]);
       setIsTyping(true);
 
+      const botId = uid();
+      let streamStarted = false;
+
       try {
         const history = toHistory([...messages, user].slice(0, -1));
         const { reply } = await postSiteChat(
@@ -109,11 +125,29 @@ export function useSiteChat() {
           history,
           controller.signal,
           sessionIdRef.current,
+          (delta) => {
+            if (!streamStarted) {
+              streamStarted = true;
+              setIsTyping(false);
+              setMessages((prev) => [
+                ...prev,
+                { id: botId, role: "bot", content: delta, timestamp: Date.now() },
+              ]);
+              return;
+            }
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === botId ? { ...m, content: m.content + delta } : m,
+              ),
+            );
+          },
         );
-        setMessages((prev) => [
-          ...prev,
-          { id: uid(), role: "bot", content: reply, timestamp: Date.now() },
-        ]);
+        if (!streamStarted) {
+          setMessages((prev) => [
+            ...prev,
+            { id: botId, role: "bot", content: reply, timestamp: Date.now() },
+          ]);
+        }
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") return;
         const fallback =

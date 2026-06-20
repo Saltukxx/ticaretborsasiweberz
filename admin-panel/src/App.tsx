@@ -87,7 +87,14 @@ export default function App() {
             element={<CorporateDocumentEditPage />}
           />
           <Route path="contact-submissions" element={<ContactSubmissionsPage />} />
-          <Route path="chat-logs" element={<ChatLogsPage />} />
+          <Route
+            path="chat-logs"
+            element={
+              <SuperAdminRoute>
+                <ChatLogsPage />
+              </SuperAdminRoute>
+            }
+          />
           <Route path="newsletter-subscribers" element={<NewsletterSubscribersPage />} />
           <Route path="legal-pages" element={<LegalPagesPage />} />
           <Route path="hero-content" element={<HeroContentPage />} />

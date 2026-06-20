@@ -7,7 +7,7 @@ const historyTurnSchema = z.object({
 
 export const recipeChatBodySchema = z.object({
   message: z.string().trim().min(1).max(2000),
-  history: z.array(historyTurnSchema).max(12).default([]),
+  history: z.array(historyTurnSchema).max(8).default([]),
   sessionId: z.string().uuid().optional(),
   /** 0 = not started; 1–7 = active recipe step */
   currentStep: z.number().int().min(0).max(7).optional(),

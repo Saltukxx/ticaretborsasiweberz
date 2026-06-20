@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NavLink } from "react-router-dom";
 import { prefetchPriceBulletin } from "../lib/prefetchBulletin";
 import { HEADER_UTIL_LINKS } from "../lib/externalLinks";
+import { lockBodyScroll, unlockBodyScroll } from "../lib/bodyScrollLock";
 import { WHATSAPP_PHONE_DISPLAY, WHATSAPP_URL } from "../lib/siteContacts";
 import SearchOverlay from "./SearchOverlay";
 import LiveMarketStrip from "./LiveMarketStrip";
@@ -46,17 +47,28 @@ export default function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
+    let isScrolled = window.scrollY > 48;
+
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (!isScrolled && y > 48) {
+        isScrolled = true;
+        setScrolled(true);
+      } else if (isScrolled && y < 8) {
+        isScrolled = false;
+        setScrolled(false);
+      }
+    };
+
+    setScrolled(isScrolled);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
+    if (!open) return;
+    lockBodyScroll("header-menu");
+    return () => unlockBodyScroll("header-menu");
   }, [open]);
 
   useEffect(() => {

@@ -1,5 +1,11 @@
 import { buildGeminiRecipeFullSystemInstruction } from "../modules/recipeChat/recipeChat.context.js";
 import type { RecipeVideoStateInput } from "../modules/recipeChat/recipeChat.context.js";
+import {
+  appendShortResponseHint,
+  DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+  GeminiStreamError,
+  streamGeminiGenerateContent,
+} from "./geminiStream.js";
 
 export type GeminiRecipeErrorCode =
   | "network"
@@ -52,26 +58,11 @@ const SAFETY_SETTINGS = [
   { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_MEDIUM_AND_ABOVE" },
 ] as const;
 
-export async function generateRecipeChatReply(options: {
-  apiKey: string;
-  model?: string;
-  history: GeminiRecipeChatHistoryTurn[];
-  userMessage: string;
-  currentStep?: number;
-  videoState?: RecipeVideoStateInput;
-  signal?: AbortSignal;
-}): Promise<string> {
-  const {
-    apiKey,
-    model = DEFAULT_MODEL,
-    history,
-    userMessage,
-    currentStep,
-    videoState,
-    signal,
-  } = options;
-
-  const contents: GenerateContentMessage[] = [
+function buildRecipeContents(
+  history: GeminiRecipeChatHistoryTurn[],
+  userMessage: string,
+): GenerateContentMessage[] {
+  return [
     ...history.map((turn) => ({
       role: turn.role,
       parts: [{ text: turn.text }],
@@ -81,15 +72,62 @@ export async function generateRecipeChatReply(options: {
       parts: [{ text: userMessage }],
     },
   ];
+}
+
+function buildRecipeSystemInstruction(
+  currentStep?: number,
+  videoState?: RecipeVideoStateInput,
+): string {
+  return appendShortResponseHint(
+    buildGeminiRecipeFullSystemInstruction(currentStep, videoState),
+  );
+}
+
+function mapStreamError(err: GeminiStreamError): GeminiRecipeError {
+  const code =
+    err.code === "network"
+      ? "network"
+      : err.code === "blocked"
+        ? "blocked"
+        : err.code === "empty"
+          ? "empty"
+          : "http";
+  return new GeminiRecipeError(err.message, code, err.status);
+}
+
+export async function generateRecipeChatReply(options: {
+  apiKey: string;
+  model?: string;
+  history: GeminiRecipeChatHistoryTurn[];
+  userMessage: string;
+  currentStep?: number;
+  videoState?: RecipeVideoStateInput;
+  maxOutputTokens?: number;
+  signal?: AbortSignal;
+}): Promise<string> {
+  const {
+    apiKey,
+    model = DEFAULT_MODEL,
+    history,
+    userMessage,
+    currentStep,
+    videoState,
+    maxOutputTokens = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+    signal,
+  } = options;
 
   const body = {
     systemInstruction: {
-      parts: [{ text: buildGeminiRecipeFullSystemInstruction(currentStep, videoState) }],
+      parts: [
+        {
+          text: buildRecipeSystemInstruction(currentStep, videoState),
+        },
+      ],
     },
-    contents,
+    contents: buildRecipeContents(history, userMessage),
     generationConfig: {
       temperature: 0.5,
-      maxOutputTokens: 1024,
+      maxOutputTokens,
       topP: 0.95,
       topK: 40,
     },
@@ -151,6 +189,55 @@ export async function generateRecipeChatReply(options: {
   }
 
   return text;
+}
+
+export async function streamRecipeChatReply(options: {
+  apiKey: string;
+  model?: string;
+  history: GeminiRecipeChatHistoryTurn[];
+  userMessage: string;
+  currentStep?: number;
+  videoState?: RecipeVideoStateInput;
+  maxOutputTokens?: number;
+  signal?: AbortSignal;
+  onDelta: (text: string) => void;
+}): Promise<string> {
+  const {
+    apiKey,
+    model = DEFAULT_MODEL,
+    history,
+    userMessage,
+    currentStep,
+    videoState,
+    maxOutputTokens = DEFAULT_GEMINI_MAX_OUTPUT_TOKENS,
+    signal,
+    onDelta,
+  } = options;
+
+  try {
+    let full = "";
+    for await (const delta of streamGeminiGenerateContent({
+      apiKey,
+      model,
+      systemInstruction: buildGeminiRecipeFullSystemInstruction(
+        currentStep,
+        videoState,
+      ),
+      contents: buildRecipeContents(history, userMessage),
+      maxOutputTokens,
+      temperature: 0.5,
+      signal,
+    })) {
+      full += delta;
+      onDelta(delta);
+    }
+    return full.trim();
+  } catch (err) {
+    if (err instanceof GeminiStreamError) {
+      throw mapStreamError(err);
+    }
+    throw err;
+  }
 }
 
 export { DEFAULT_MODEL as DEFAULT_GEMINI_RECIPE_MODEL };

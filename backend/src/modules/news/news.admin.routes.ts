@@ -3,6 +3,7 @@ import { getClientIp } from "../../lib/clientIp.js";
 import { assertSuperAdmin } from "../../plugins/adminAuth.js";
 import { writeAudit } from "../../lib/audit.js";
 import { bumpNewsCacheRevision } from "../../lib/newsCache.js";
+import { invalidateSiteChatCmsCache } from "../../lib/siteChatCache.js";
 import {
   createNews,
   hardDeleteNews,
@@ -128,6 +129,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.status(201).send({ data: result.row });
   });
@@ -180,6 +182,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -203,6 +206,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -226,6 +230,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -249,6 +254,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.send({ data: result.row });
   });
@@ -277,6 +283,7 @@ export async function adminNewsPlugin(fastify: FastifyInstance) {
       ip: getClientIp(req),
     });
     await bumpNewsCacheRevision(fastify.redis, fastify.config.redisPrefix);
+    await invalidateSiteChatCmsCache(fastify.redis, fastify.config.redisPrefix);
 
     return reply.status(204).send();
   });

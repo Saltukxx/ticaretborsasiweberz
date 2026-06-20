@@ -42,3 +42,10 @@
     padding-inline: 0.15rem;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .kvkk-hub .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -84,6 +84,17 @@ export async function getChatLogByIdAdmin(db: Database, id: string) {
   return row ?? null;
 }
 
+export async function listChatLogsBySessionAdmin(
+  db: Database,
+  sessionId: string,
+) {
+  return db
+    .select()
+    .from(chatConversationLogs)
+    .where(eq(chatConversationLogs.sessionId, sessionId))
+    .orderBy(chatConversationLogs.createdAt);
+}
+
 export async function listChatLogsForExport(
   db: Database,
   p: Omit<ChatLogListQuery, "limit" | "offset">,

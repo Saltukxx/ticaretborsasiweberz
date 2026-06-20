@@ -54,3 +54,68 @@ export function saleTypeFromProductName(name: string): string | null {
   }
   return null;
 }
+
+/** Erzurum bülteni + TOBB satış/işlem türü kısaltmaları */
+export const SALE_TYPE_LABELS: Record<string, string> = {
+  HTS: "Hazır Tüccar Satış",
+  HMS: "Hazır Müstahsil Satış",
+  HTSG: "Hazır Tüccar Satış Geç.",
+  HMSG: "Hazır Müstahsil Satış Geç.",
+  HMSGT: "Hazır Müstahsil Satış Geç.",
+  EBKS: "Et Balık Kurumu Satış",
+  EBKA: "Et Balık Kurumu Alış",
+  İHR: "İhracat",
+  IHR: "İhracat",
+  İTH: "İthalat",
+  ITH: "İthalat",
+  OfisS: "Toprak Mahsülleri Ofisi Satış",
+  OfisA: "Toprak Mahsülleri Ofisi Alış",
+  FABA: "Fabrika Alım",
+  FABS: "Fabrika Satım",
+  KOOPA: "Kooperatif Alım",
+  KOOPS: "Kooperatif Satım",
+  TARA: "Tariş Alım",
+  TARS: "Tariş Satım",
+  TMOA: "Toprak Mahsülleri Ofisi Alım",
+  TMOS: "Toprak Mahsülleri Ofisi Satım",
+  VMS: "Vadeli Müstahsil Satış",
+  VTS: "Vadeli Tüccar Satış",
+};
+
+export function formatSaleTypeLabel(code: string): string {
+  const trimmed = code.trim();
+  if (!trimmed) return code;
+  return SALE_TYPE_LABELS[trimmed] ?? SALE_TYPE_LABELS[trimmed.toUpperCase()] ?? trimmed;
+}
+
+const SIDE_LABELS: Record<string, string> = {
+  Satis: "Satış",
+  Satış: "Satış",
+  Alis: "Alış",
+  Alış: "Alış",
+};
+
+/** Bülten satır başlığı: `AYÇIÇEK YAĞI · HTS · Satış` → kısaltmasız tam etiketler. */
+export function formatBulletinProductName(name: string): string {
+  const parts = name.split(" · ").map((s) => s.trim()).filter(Boolean);
+  if (parts.length < 2) return name;
+
+  const [product, segment2, segment3, ...rest] = parts;
+  const sideFromThird =
+    segment3 != null && (segment3 in SIDE_LABELS || segment3 === "Satış" || segment3 === "Alış");
+
+  if (sideFromThird) {
+    return [
+      product,
+      formatSaleTypeLabel(segment2),
+      SIDE_LABELS[segment3] ?? segment3,
+      ...rest,
+    ].join(" · ");
+  }
+
+  if (segment2 !== "Alış" && segment2 !== "Satış" && !(segment2 in SIDE_LABELS)) {
+    return [product, formatSaleTypeLabel(segment2), segment3, ...rest].filter(Boolean).join(" · ");
+  }
+
+  return name;
+}

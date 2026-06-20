@@ -34,30 +34,35 @@ Kesin kurallar:
 2. Konu dışı sorularda (başka şehir, alışveriş adresi, siyaset, tıbbi teşhis vb.) nazikçe bu sohbetin kapsamı dışında olduğunu belirt.
 3. Yanıtlarda **kalın**, _italik_ ve madde işaretleri kullanabilirsin (arayüz bunları gösterir).
 4. Yanıtta kaynak, CONTEXT, adım numarası, veri seti veya parantez içi atıf gösterme; doğal anlatıcı diliyle konuş.
-5. Referans video sessizdir; anlatım yoktur. Adımlar Kadayıfçı Harun Usta atölye görüntülerine dayanır.
+5. Referans video sessizdir; anlatım yoktur. Adımlar Kadayıfçı Harun Usta atölye görüntülerine dayanır.`;
 
-Video kontrolü:
-- Kullanıcı videoyu oynatma, durdurma, ileri/geri sarma veya belirli adıma/saniyeye gitme istediğinde yanıtının EN SON satırına tek bir gizli komut ekle (kullanıcıya açıklama):
-  [[VIDEO:{"action":"..."}]]
-- Geçerli action değerleri:
-  - "play" — oynat / devam et
-  - "pause" — durdur
-  - "seek" — {"action":"seek","seconds":34,"play":false} (saniye; play isteğe bağlı)
-  - "step" — {"action":"step","step":4,"play":true} (adım 1–7; play isteğe bağlı)
-  - "delta" — {"action":"delta","seconds":10} veya negatif saniye (geri)
-  - "next_step" — sonraki tarif adımına geç
-  - "prev_step" — önceki tarif adımına geç
-- Adım başlangıç saniyeleri CONTEXT steps[].videoTimestamp alanındadır.
-- Video kontrolü istenmediyse [[VIDEO:...]] ekleme.
-- Soru + video isteği birlikte olabilir; kısa yanıt ver ve uygun komutu ekle.`;
+function buildCompactRecipeContext(currentStep?: number): string {
+  const base = {
+    name: recipeContext.name,
+    origin: recipeContext.origin,
+    category: recipeContext.category,
+    registration: recipeContext.registration,
+    culturalContext: recipeContext.culturalContext,
+    ingredients: recipeContext.ingredients,
+  };
 
-const geminiRecipeContextBlock = [
-  "### CONTEXT (Tek yetkili veri seti — uydurma yok)",
-  "Aşağıdaki JSON dışındaki iddialarda spekülasyon yapma; bilgi yoksa kısaca söyle.",
-  "```json",
-  JSON.stringify(recipeContext, null, 2),
-  "```",
-].join("\n");
+  if (currentStep === undefined || currentStep === 0) {
+    return JSON.stringify({
+      ...base,
+      stepsOverview: RECIPE_STEPS.map((s) => ({
+        id: s.id,
+        title: s.title,
+        description: s.description,
+      })),
+    });
+  }
+
+  const step = RECIPE_STEPS.find((s) => s.id === currentStep);
+  return JSON.stringify({
+    ...base,
+    currentStep: step ?? null,
+  });
+}
 
 function buildCurrentStepBlock(currentStep?: number): string {
   if (currentStep === undefined || currentStep === 0) {
@@ -119,10 +124,19 @@ export function buildGeminiRecipeFullSystemInstruction(
   currentStep?: number,
   videoState?: RecipeVideoStateInput,
 ): string {
+  const contextBlock = [
+    "### CONTEXT (Tek yetkili veri seti — uydurma yok)",
+    "Aşağıdaki JSON dışındaki iddialarda spekülasyon yapma; bilgi yoksa kısaca söyle.",
+    buildCompactRecipeContext(currentStep),
+  ].join("\n");
+
   const stepBlock = buildCurrentStepBlock(currentStep);
   const videoBlock = buildVideoStateBlock(videoState);
-  const parts = [geminiRecipeNarratorInstruction, stepBlock, videoBlock, geminiRecipeContextBlock].filter(
-    Boolean,
-  );
+  const parts = [
+    geminiRecipeNarratorInstruction,
+    stepBlock,
+    videoBlock,
+    contextBlock,
+  ].filter(Boolean);
   return parts.join("\n\n");
 }

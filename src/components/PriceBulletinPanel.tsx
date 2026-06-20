@@ -15,6 +15,8 @@ import {
   formatMoney,
   formatPrice,
   formatVolume,
+  formatBulletinProductName,
+  formatSaleTypeLabel,
   hasChangePct,
   saleTypeFromProductName,
 } from "../lib/priceDisplay";
@@ -242,7 +244,7 @@ export default function PriceBulletinPanel({ bulletinPage = false }: { bulletinP
                   >
                     <div className="pbp__row-main">
                       <span className="pbp__row-cat mono">{p.product_category}</span>
-                      <span className="pbp__row-name">{p.product_name}</span>
+                      <span className="pbp__row-name">{formatBulletinProductName(p.product_name)}</span>
                       {bulletinPage && (p.volume != null || p.transaction_count != null) ? (
                         <span className="pbp__row-meta mono">
                           {p.volume != null ? formatVolume(p) : null}
@@ -289,7 +291,7 @@ export default function PriceBulletinPanel({ bulletinPage = false }: { bulletinP
                 <header className="pbp__detail-head">
                   <div>
                     <span className="mono pbp__detail-cat">{active.product_category}</span>
-                    <h3>{active.product_name}</h3>
+                    <h3>{formatBulletinProductName(active.product_name)}</h3>
                     <span className="mono pbp__detail-time">{formatUpdated(active)}</span>
                     {entryDateNote ? (
                       <span className="mono pbp__detail-time pbp__detail-time--note">{entryDateNote}</span>
@@ -354,7 +356,7 @@ export default function PriceBulletinPanel({ bulletinPage = false }: { bulletinP
                   <div>
                     <span className="mono">Satış Şekli</span>
                     <strong className="tabular">
-                      {saleTypeFromProductName(active.product_name) ?? "—"}
+                      {formatSaleTypeLabel(saleTypeFromProductName(active.product_name) ?? "") || "—"}
                     </strong>
                   </div>
                   <div>

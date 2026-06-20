@@ -9,6 +9,7 @@ import {
   countActiveBulletinFilters,
   type BulletinFilterState,
 } from "../lib/bulletinFilters";
+import { formatSaleTypeLabel } from "../lib/priceDisplay";
 
 type Props = {
   filters: BulletinFilterState;
@@ -133,7 +134,7 @@ export default function BulletinFilterBar({
                 className={`pbp__chip ${filters.saleType === st ? "is-active" : ""}`}
                 onClick={() => onChange({ saleType: st })}
               >
-                {st === CATEGORY_ALL ? "Tümü" : st}
+                {st === CATEGORY_ALL ? "Tümü" : formatSaleTypeLabel(st)}
               </button>
             ))}
           </div>
