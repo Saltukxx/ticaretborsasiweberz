@@ -193,6 +193,10 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
 
           return reply.send({ data: { reply: replyText } });
         } catch (err) {
+          if (err instanceof Error && err.name === "AbortError") {
+            endSseReply(reply);
+            return;
+          }
           if (err instanceof GeminiRecipeError) {
             const outcome = err.code === "blocked" ? "blocked" : "error";
             logChatConversation(
