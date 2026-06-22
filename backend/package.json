@@ -18,7 +18,7 @@
     "repair:product-names": "node dist/scripts/repairProductNames.js",
     "sync:databank:dev": "tsx src/scripts/runDatabankSync.ts",
     "sync:databank:poc": "tsx src/scripts/databankPoc.ts",
-    "test:databank": "tsx --test src/modules/databankSync/parsers/htmlTable.test.ts src/modules/databankSync/encoding.test.ts src/modules/databankSync/validate.test.ts src/modules/databankSync/mergePrices.test.ts src/modules/siteChat/siteChat.test.ts src/modules/siteChat/siteChat.cmsFetch.test.ts src/lib/geminiStream.test.ts src/modules/recipeChat/recipeChat.context.test.ts",
+    "test:databank": "tsx --test src/modules/databankSync/parsers/htmlTable.test.ts src/modules/databankSync/encoding.test.ts src/modules/databankSync/validate.test.ts src/modules/databankSync/mergePrices.test.ts src/modules/siteChat/siteChat.test.ts src/modules/siteChat/siteChat.cmsFetch.test.ts src/lib/geminiStream.test.ts src/lib/sseReply.test.ts src/modules/recipeChat/recipeChat.context.test.ts",
     "test:leadership": "tsx --test src/modules/leadership/leadershipRoleKey.test.ts",
     "test:recipe-chat": "tsx --test src/modules/recipeChat/recipeChat.schema.test.ts src/modules/recipeChat/recipeChat.context.test.ts src/lib/recipeVideoControl.test.ts src/lib/recipeChatFallback.test.ts",
     "extract:corporate-docs": "tsx src/scripts/extractCorporateDocBodies.ts",
