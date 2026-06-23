@@ -128,7 +128,6 @@ export function useSiteChat() {
           (delta) => {
             if (!streamStarted) {
               streamStarted = true;
-              setIsTyping(false);
               setMessages((prev) => [
                 ...prev,
                 { id: botId, role: "bot", content: delta, timestamp: Date.now() },
@@ -147,9 +146,18 @@ export function useSiteChat() {
             ...prev,
             { id: botId, role: "bot", content: reply, timestamp: Date.now() },
           ]);
+        } else {
+          setMessages((prev) =>
+            prev.map((m) => (m.id === botId ? { ...m, content: reply } : m)),
+          );
         }
       } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") {
+          if (streamStarted) {
+            setMessages((prev) => prev.filter((m) => m.id !== botId));
+          }
+          return;
+        }
         const fallback =
           err instanceof SiteChatApiError
             ? err.message
