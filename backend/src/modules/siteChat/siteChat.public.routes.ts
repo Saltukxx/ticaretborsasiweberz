@@ -99,55 +99,79 @@ export async function publicSiteChatPlugin(fastify: FastifyInstance) {
         if (stream) {
           initSseReply(reply);
 
-          const result = await streamSiteChatMessage(
-            fastify.db,
-            fastify.redis,
-            fastify.config.redisPrefix,
-            { ...chatOptions, signal: abort.signal },
-            { delta: (text) => writeSseEvent(reply, "delta", { text }) },
-          );
+          try {
+            const result = await streamSiteChatMessage(
+              fastify.db,
+              fastify.redis,
+              fastify.config.redisPrefix,
+              { ...chatOptions, signal: abort.signal },
+              { delta: (text) => writeSseEvent(reply, "delta", { text }) },
+            );
 
-          if (!result.ok) {
+            if (!result.ok) {
+              logChatConversation(
+                fastify.db,
+                {
+                  channel: "site_chat",
+                  sessionId: sessionId ?? null,
+                  userMessage: message,
+                  botReply: result.message,
+                  history,
+                  outcome: "error",
+                  errorCode: result.code.toUpperCase(),
+                  meta,
+                },
+                (err) => fastify.log.warn({ err }, "site_chat log kaydedilemedi"),
+              );
+              writeSseEvent(reply, "error", {
+                code: result.code.toUpperCase(),
+                message: result.message,
+              });
+              endSseReply(reply);
+              return;
+            }
+
             logChatConversation(
               fastify.db,
               {
                 channel: "site_chat",
                 sessionId: sessionId ?? null,
                 userMessage: message,
-                botReply: result.message,
+                botReply: result.reply,
                 history,
-                outcome: "error",
-                errorCode: result.code.toUpperCase(),
+                outcome: "ok",
+                path: result.path,
                 meta,
               },
               (err) => fastify.log.warn({ err }, "site_chat log kaydedilemedi"),
             );
+
+            writeSseEvent(reply, "done", { reply: result.reply, path: result.path });
+            endSseReply(reply);
+            return;
+          } catch (err) {
+            const messageText =
+              err instanceof Error ? err.message : "Yanıt oluşturulamadı";
+            logChatConversation(
+              fastify.db,
+              {
+                channel: "site_chat",
+                sessionId: sessionId ?? null,
+                userMessage: message,
+                history,
+                outcome: "error",
+                errorCode: "INTERNAL_ERROR",
+                meta,
+              },
+              (logErr) => fastify.log.warn({ err: logErr }, "site_chat log kaydedilemedi"),
+            );
             writeSseEvent(reply, "error", {
-              code: result.code.toUpperCase(),
-              message: result.message,
+              code: "INTERNAL_ERROR",
+              message: messageText,
             });
             endSseReply(reply);
             return;
           }
-
-          logChatConversation(
-            fastify.db,
-            {
-              channel: "site_chat",
-              sessionId: sessionId ?? null,
-              userMessage: message,
-              botReply: result.reply,
-              history,
-              outcome: "ok",
-              path: result.path,
-              meta,
-            },
-            (err) => fastify.log.warn({ err }, "site_chat log kaydedilemedi"),
-          );
-
-          writeSseEvent(reply, "done", { reply: result.reply, path: result.path });
-          endSseReply(reply);
-          return;
         }
 
         const result = await handleSiteChatMessage(
