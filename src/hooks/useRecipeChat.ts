@@ -749,7 +749,6 @@ export function useRecipeChat(): UseRecipeChatReturn {
               streamedText += delta;
               if (!streamStarted) {
                 streamStarted = true;
-                setIsTyping(false);
                 setMessages((prev) => [
                   ...prev,
                   { id: botId, role: "bot", content: streamedText, timestamp: Date.now() },
@@ -763,9 +762,14 @@ export function useRecipeChat(): UseRecipeChatReturn {
               );
             },
           );
-          if (controller.signal.aborted) return;
+          if (controller.signal.aborted) {
+            if (streamStarted) {
+              setMessages((prev) => prev.filter((m) => m.id !== botId));
+            }
+            return;
+          }
 
-          const finalReply = streamStarted ? streamedText : reply;
+          const finalReply = reply?.trim() ? reply : streamedText;
           const { cleanText, commands } = extractVideoCommands(finalReply);
           let cmds = commands;
 
@@ -793,7 +797,15 @@ export function useRecipeChat(): UseRecipeChatReturn {
             setMessages((prev) => [...prev, botMsg(body)]);
           }
         } catch (err) {
-          if (controller.signal.aborted) return;
+          if (
+            controller.signal.aborted ||
+            (err instanceof Error && err.name === "AbortError")
+          ) {
+            if (streamStarted) {
+              setMessages((prev) => prev.filter((m) => m.id !== botId));
+            }
+            return;
+          }
           setReplyMode("local");
           const intro =
             err instanceof RecipeChatApiError
