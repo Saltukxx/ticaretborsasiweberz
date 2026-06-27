@@ -44,6 +44,15 @@ export async function adminDatabankSyncPlugin(fastify: FastifyInstance) {
       },
     );
 
+    if (result.status === "skipped") {
+      return reply.status(409).send({
+        error: {
+          code: "SYNC_ALREADY_RUNNING",
+          message: "DataBank sync is already in progress",
+        },
+      });
+    }
+
     const status = result.status === "success" ? 200 : 502;
     return reply.status(status).send({ data: result });
   });
