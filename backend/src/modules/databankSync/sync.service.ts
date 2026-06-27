@@ -84,12 +84,14 @@ export function databankConfigFromApp(config: Config): DatabankSyncConfig {
 
 export type SyncResult = {
   runId: string;
-  status: "success" | "failed";
+  status: "success" | "failed" | "skipped";
   rowsUpserted: number;
   chartsProcessed: number;
   groupsProcessed: number;
   errorMessage?: string;
 };
+
+let databankSyncInProgress = false;
 
 export async function runDatabankSync(
   db: Database,
@@ -102,172 +104,188 @@ export async function runDatabankSync(
     throw new Error("DataBank sync is disabled (DATABANK_SYNC_ENABLED=false)");
   }
 
-  const sections = opts?.sections ?? cfg.sections;
-  const client = new DatabankClient({
-    baseUrl: cfg.baseUrl,
-    requestDelayMs: cfg.requestDelayMs,
-  });
-  const year = new Date().getFullYear().toString();
-  const adminId = await getOrCreateSyncAdminId(db);
+  if (databankSyncInProgress) {
+    return {
+      runId: "",
+      status: "skipped",
+      rowsUpserted: 0,
+      chartsProcessed: 0,
+      groupsProcessed: 0,
+      errorMessage: "already_running",
+    };
+  }
 
-  const [run] = await db
-    .insert(databankSyncRuns)
-    .values({
-      status: "running",
-      sections,
-    })
-    .returning({ id: databankSyncRuns.id });
-
-  if (!run) throw new Error("sync run insert failed");
-
-  let rowsUpserted = 0;
-  let chartsProcessed = 0;
-  let groupsProcessed = 0;
+  databankSyncInProgress = true;
 
   try {
-    const homeEntries: ReturnType<typeof mapHomeRowToEntries> = [];
-    const tescilEntries: ReturnType<typeof mapTescilRowToEntries> = [];
+    const sections = opts?.sections ?? cfg.sections;
+    const client = new DatabankClient({
+      baseUrl: cfg.baseUrl,
+      requestDelayMs: cfg.requestDelayMs,
+    });
+    const year = new Date().getFullYear().toString();
+    const adminId = await getOrCreateSyncAdminId(db);
 
-    if (sections.includes("home")) {
-      const html = await client.fetchHomeTable(year, "00");
-      const rows = parseHomeTableHtml(html, "TÜM GRUPLAR");
-      for (const r of rows) {
-        homeEntries.push(...mapHomeRowToEntries(r));
-      }
-      groupsProcessed = 1;
-    }
+    const [run] = await db
+      .insert(databankSyncRuns)
+      .values({
+        status: "running",
+        sections,
+      })
+      .returning({ id: databankSyncRuns.id });
 
-    if (sections.includes("tescil")) {
-      const today = isoDateToday();
-      const days = Math.max(0, cfg.tescilBackfillDays);
-      for (let d = 0; d <= days; d++) {
-        const date = addDays(today, -d);
-        const html = await client.fetchTescilBulletin("D", date);
-        const rows = parseTescilBulletinHtml(html);
+    if (!run) throw new Error("sync run insert failed");
+
+    let rowsUpserted = 0;
+    let chartsProcessed = 0;
+    let groupsProcessed = 0;
+
+    try {
+      const homeEntries: ReturnType<typeof mapHomeRowToEntries> = [];
+      const tescilEntries: ReturnType<typeof mapTescilRowToEntries> = [];
+
+      if (sections.includes("home")) {
+        const html = await client.fetchHomeTable(year, "00");
+        const rows = parseHomeTableHtml(html, "TÜM GRUPLAR");
         for (const r of rows) {
-          tescilEntries.push(...mapTescilRowToEntries(r, date));
+          homeEntries.push(...mapHomeRowToEntries(r));
+        }
+        groupsProcessed = 1;
+      }
+
+      if (sections.includes("tescil")) {
+        const today = isoDateToday();
+        const days = Math.max(0, cfg.tescilBackfillDays);
+        for (let d = 0; d <= days; d++) {
+          const date = addDays(today, -d);
+          const html = await client.fetchTescilBulletin("D", date);
+          const rows = parseTescilBulletinHtml(html);
+          for (const r of rows) {
+            tescilEntries.push(...mapTescilRowToEntries(r, date));
+          }
         }
       }
-    }
 
-    const merged = mergeByPriority(
-      homeEntries,
-      tescilEntries,
-      cfg.sourcePriority,
-    );
-
-    if (!opts?.dryRun && tescilEntries.length > 0) {
-      await storeBulletinSessionSlugs(redis, redisPrefix, tescilEntries);
-    }
-
-    const { valid: validated, rejected } = filterValidEntries(merged);
-    if (rejected.length > 0) {
-      console.warn(
-        `[databank] ${rejected.length} row(s) skipped (validation)`,
-        rejected.slice(0, 5).map((r) => ({
-          slug: r.entry.productSlug,
-          reason: r.reason,
-        })),
+      const merged = mergeByPriority(
+        homeEntries,
+        tescilEntries,
+        cfg.sourcePriority,
       );
-    }
 
-    if (!opts?.dryRun && validated.length > 0) {
-      await enrichChangePctFromHistory(db, validated);
-      await ensureProducts(db, validated);
-      const bulk = toBulkRows(validated);
-      const result = await bulkUpsertPriceEntries(db, adminId, bulk);
-      if (!result.ok) {
-        throw new Error(`bulk upsert failed: unknown slug ${result.slug}`);
-      }
-      rowsUpserted = result.upserted;
-      const removedFuture = await deleteFuturePriceEntries(db);
-      if (removedFuture > 0) {
+      const { valid: validated, rejected } = filterValidEntries(merged);
+      if (rejected.length > 0) {
         console.warn(
-          `[databank] removed ${removedFuture} future-dated price row(s)`,
+          `[databank] ${rejected.length} row(s) skipped (validation)`,
+          rejected.slice(0, 5).map((r) => ({
+            slug: r.entry.productSlug,
+            reason: r.reason,
+          })),
         );
       }
-      await repairProductDisplayNames(db);
-      await deactivateCorruptProducts(db);
-      await invalidatePricesPublicCache(redis, redisPrefix);
-    } else if (opts?.dryRun) {
-      rowsUpserted = validated.length;
-    }
 
-    if (sections.includes("charts") && !opts?.dryRun) {
-      const catalogHtml = await client.fetchProductCatalogPage();
-      const catalog = parseProductCatalog(catalogHtml);
-      const edate = isoDateToday();
-      const bdate = `${Number(year) - cfg.chartYearsBack}-01-01`;
+      if (!opts?.dryRun && validated.length > 0) {
+        await enrichChangePctFromHistory(db, validated);
+        await ensureProducts(db, validated);
+        const bulk = toBulkRows(validated);
+        const result = await bulkUpsertPriceEntries(db, adminId, bulk);
+        if (!result.ok) {
+          throw new Error(`bulk upsert failed: unknown slug ${result.slug}`);
+        }
+        rowsUpserted = result.upserted;
+        const removedFuture = await deleteFuturePriceEntries(db);
+        if (removedFuture > 0) {
+          console.warn(
+            `[databank] removed ${removedFuture} future-dated price row(s)`,
+          );
+        }
+        await repairProductDisplayNames(db);
+        await deactivateCorruptProducts(db);
+        if (tescilEntries.length > 0) {
+          await storeBulletinSessionSlugs(redis, redisPrefix, tescilEntries);
+        }
+        await invalidatePricesPublicCache(redis, redisPrefix);
+      } else if (opts?.dryRun) {
+        rowsUpserted = validated.length;
+      }
 
-      for (const product of catalog) {
-        const html = await client.fetchProductChart({
-          mname: product.name,
-          itemsIslem: "1",
-          itemsPer: "3",
-          bdate,
-          edate,
-        });
-        const points = parseProductChartHtml(
-          html,
-          product.name,
-          product.category,
-          "GENEL",
-          "mustahsil",
-        );
-        if (points.length > 0) {
-          chartsProcessed += await upsertMonthlyHistory(db, points);
+      if (sections.includes("charts") && !opts?.dryRun) {
+        const catalogHtml = await client.fetchProductCatalogPage();
+        const catalog = parseProductCatalog(catalogHtml);
+        const edate = isoDateToday();
+        const bdate = `${Number(year) - cfg.chartYearsBack}-01-01`;
+
+        for (const product of catalog) {
+          const html = await client.fetchProductChart({
+            mname: product.name,
+            itemsIslem: "1",
+            itemsPer: "3",
+            bdate,
+            edate,
+          });
+          const points = parseProductChartHtml(
+            html,
+            product.name,
+            product.category,
+            "GENEL",
+            "mustahsil",
+          );
+          if (points.length > 0) {
+            chartsProcessed += await upsertMonthlyHistory(db, points);
+          }
         }
       }
-    }
 
-    if (sections.includes("volume") && !opts?.dryRun) {
-      const currentYear = new Date().getFullYear();
-      for (let y = cfg.volumeYearsFrom; y <= currentYear; y++) {
-        const html = await client.fetchVolumeYear(String(y));
-        const series = parseVolumePageHtml(html, String(y));
-        await upsertVolumeSeries(db, series);
+      if (sections.includes("volume") && !opts?.dryRun) {
+        const currentYear = new Date().getFullYear();
+        for (let y = cfg.volumeYearsFrom; y <= currentYear; y++) {
+          const html = await client.fetchVolumeYear(String(y));
+          const series = parseVolumePageHtml(html, String(y));
+          await upsertVolumeSeries(db, series);
+        }
       }
-    }
 
-    await db
-      .update(databankSyncRuns)
-      .set({
+      await db
+        .update(databankSyncRuns)
+        .set({
+          status: "success",
+          finishedAt: new Date(),
+          groupsProcessed,
+          rowsUpserted,
+          chartsProcessed,
+        })
+        .where(eq(databankSyncRuns.id, run.id));
+
+      return {
+        runId: run.id,
         status: "success",
-        finishedAt: new Date(),
-        groupsProcessed,
         rowsUpserted,
         chartsProcessed,
-      })
-      .where(eq(databankSyncRuns.id, run.id));
-
-    return {
-      runId: run.id,
-      status: "success",
-      rowsUpserted,
-      chartsProcessed,
-      groupsProcessed,
-    };
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await db
-      .update(databankSyncRuns)
-      .set({
+        groupsProcessed,
+      };
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      await db
+        .update(databankSyncRuns)
+        .set({
+          status: "failed",
+          finishedAt: new Date(),
+          groupsProcessed,
+          rowsUpserted,
+          chartsProcessed,
+          errorMessage: msg,
+        })
+        .where(eq(databankSyncRuns.id, run.id));
+      return {
+        runId: run.id,
         status: "failed",
-        finishedAt: new Date(),
-        groupsProcessed,
         rowsUpserted,
         chartsProcessed,
+        groupsProcessed,
         errorMessage: msg,
-      })
-      .where(eq(databankSyncRuns.id, run.id));
-    return {
-      runId: run.id,
-      status: "failed",
-      rowsUpserted,
-      chartsProcessed,
-      groupsProcessed,
-      errorMessage: msg,
-    };
+      };
+    }
+  } finally {
+    databankSyncInProgress = false;
   }
 }
 
