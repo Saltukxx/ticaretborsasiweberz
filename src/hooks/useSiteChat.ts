@@ -128,7 +128,6 @@ export function useSiteChat() {
           (delta) => {
             if (!streamStarted) {
               streamStarted = true;
-              setIsTyping(false);
               setMessages((prev) => [
                 ...prev,
                 { id: botId, role: "bot", content: delta, timestamp: Date.now() },
@@ -142,14 +141,28 @@ export function useSiteChat() {
             );
           },
         );
-        if (!streamStarted) {
+        if (controller.signal.aborted) return;
+
+        const finalReply = reply.trim();
+        if (streamStarted) {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === botId ? { ...m, content: finalReply } : m,
+            ),
+          );
+        } else {
           setMessages((prev) => [
             ...prev,
-            { id: botId, role: "bot", content: reply, timestamp: Date.now() },
+            { id: botId, role: "bot", content: finalReply, timestamp: Date.now() },
           ]);
         }
       } catch (err) {
-        if (err instanceof Error && err.name === "AbortError") return;
+        if (err instanceof Error && err.name === "AbortError") {
+          if (streamStarted) {
+            setMessages((prev) => prev.filter((m) => m.id !== botId));
+          }
+          return;
+        }
         const fallback =
           err instanceof SiteChatApiError
             ? err.message
@@ -159,7 +172,7 @@ export function useSiteChat() {
           { id: uid(), role: "bot", content: fallback, timestamp: Date.now() },
         ]);
       } finally {
-        setIsTyping(false);
+        if (!controller.signal.aborted) setIsTyping(false);
       }
     },
     [isTyping, messages],
