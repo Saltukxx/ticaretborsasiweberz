@@ -1,4 +1,5 @@
 import type React from "react";
+import { safeHref } from "./safeHref";
 
 export function renderSiteChatInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
@@ -15,7 +16,7 @@ export function renderSiteChatInline(text: string): React.ReactNode[] {
       parts.push(<strong key={key++}>{match[2]}</strong>);
     } else if (match[4] && match[5]) {
       parts.push(
-        <a key={key++} href={match[5]}>
+        <a key={key++} href={safeHref(match[5])} rel="noopener noreferrer">
           {match[4]}
         </a>,
       );
