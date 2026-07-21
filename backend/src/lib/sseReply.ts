@@ -1,5 +1,16 @@
 import type { FastifyReply } from "fastify";
 
+export function isAbortError(err: unknown): err is Error {
+  return err instanceof Error && err.name === "AbortError";
+}
+
+/** Close an hijacked SSE stream when the client disconnects mid-response. */
+export function endSseReplyOnAbort(reply: FastifyReply): void {
+  if (reply.raw.headersSent) {
+    endSseReply(reply);
+  }
+}
+
 export function initSseReply(reply: FastifyReply): void {
   if (reply.raw.headersSent) return;
   reply.hijack();
