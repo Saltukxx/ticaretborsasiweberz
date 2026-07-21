@@ -6,7 +6,13 @@ import {
   generateRecipeChatReply,
   streamRecipeChatReply,
 } from "../../lib/geminiRecipe.js";
-import { endSseReply, initSseReply, writeSseEvent } from "../../lib/sseReply.js";
+import {
+  endSseReply,
+  endSseReplyOnAbort,
+  initSseReply,
+  isAbortError,
+  writeSseEvent,
+} from "../../lib/sseReply.js";
 import { collectChatRequestMeta } from "../chatLogs/chatLogs.collectMeta.js";
 import { logChatConversation } from "../chatLogs/chatLogs.service.js";
 import { recipeChatBodySchema } from "./recipeChat.schema.js";
@@ -193,6 +199,10 @@ export async function publicRecipeChatPlugin(fastify: FastifyInstance) {
 
           return reply.send({ data: { reply: replyText } });
         } catch (err) {
+          if (isAbortError(err)) {
+            endSseReplyOnAbort(reply);
+            return;
+          }
           if (err instanceof GeminiRecipeError) {
             const outcome = err.code === "blocked" ? "blocked" : "error";
             logChatConversation(
