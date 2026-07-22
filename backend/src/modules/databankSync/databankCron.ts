@@ -5,8 +5,6 @@ import type { Database } from "../../db/connection.js";
 import type { RedisClient } from "../../lib/redis.js";
 import { databankConfigFromApp, runDatabankSync } from "./sync.service.js";
 
-let running = false;
-
 export function startDatabankHourlyCron(
   app: FastifyInstance,
   db: Database,
@@ -27,11 +25,6 @@ export function startDatabankHourlyCron(
   const cfg = databankConfigFromApp(config);
 
   const run = async (trigger: string) => {
-    if (running) {
-      app.log.warn({ trigger }, "DataBank sync already running, skip");
-      return;
-    }
-    running = true;
     app.log.info({ trigger, expr }, "DataBank scheduled sync start");
     try {
       const result = await runDatabankSync(
@@ -41,11 +34,17 @@ export function startDatabankHourlyCron(
         cfg,
         { sections: ["home", "tescil"] },
       );
+      if (result.status === "skipped") {
+        app.log.warn({ trigger }, "DataBank sync already running, skip");
+        return;
+      }
+      if (result.status === "failed") {
+        app.log.error({ result }, "DataBank scheduled sync failed");
+        return;
+      }
       app.log.info({ result }, "DataBank scheduled sync finished");
     } catch (err) {
       app.log.error({ err }, "DataBank scheduled sync failed");
-    } finally {
-      running = false;
     }
   };
 
