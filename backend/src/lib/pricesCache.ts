@@ -20,6 +20,18 @@ export function bulletinSessionSlugsCacheKey(
   return `${prefix}cache:bulletin:slugs:${sessionDate}`;
 }
 
+/** Reject partial tescil parses that would hide most bulletin products. */
+export const PARTIAL_TESCIL_MIN_RATIO = 0.5;
+
+export function shouldSkipBulletinSlugShrink(
+  existingSize: number,
+  incomingSize: number,
+): boolean {
+  if (existingSize <= 0) return false;
+  if (incomingSize >= existingSize) return false;
+  return incomingSize < existingSize * PARTIAL_TESCIL_MIN_RATIO;
+}
+
 export function pricesHistoryCacheKey(
   prefix: string,
   productSlug: string,
@@ -47,14 +59,25 @@ export async function storeBulletinSessionSlugs(
   }
 
   await Promise.all(
-    [...byDate.entries()].map(([sessionDate, slugs]) =>
-      redis.set(
+    [...byDate.entries()].map(async ([sessionDate, slugs]) => {
+      const existing = await getBulletinSessionSlugs(redis, prefix, sessionDate);
+      if (
+        existing &&
+        shouldSkipBulletinSlugShrink(existing.size, slugs.size)
+      ) {
+        console.warn(
+          `[prices] skipped bulletin slug shrink for ${sessionDate}: ${slugs.size} incoming vs ${existing.size} cached`,
+        );
+        return;
+      }
+
+      await redis.set(
         bulletinSessionSlugsCacheKey(prefix, sessionDate),
         JSON.stringify([...slugs]),
         "EX",
         BULLETIN_SLUGS_TTL_SEC,
-      ),
-    ),
+      );
+    }),
   );
 }
 
