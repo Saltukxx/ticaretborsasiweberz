@@ -166,7 +166,6 @@ export function usePriceHistory(
     queryFn: () => fetchPriceHistory(productSlug!, period),
     enabled: Boolean(productSlug),
     staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 }
 
@@ -179,7 +178,6 @@ export function usePriceHistoryWithFallback(
     queryFn: () => fetchPriceHistoryWithFallback(productSlug!, period),
     enabled: Boolean(productSlug),
     staleTime: 60_000,
-    placeholderData: (prev) => prev,
   });
 }
 
