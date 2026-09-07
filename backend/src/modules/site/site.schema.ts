@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { LEGAL_PAGE_SLUGS } from "../../db/schema/site.js";
+import { isSafeHref } from "../../lib/safeHref.js";
+
+const optionalSafeHrefSchema = z
+  .string()
+  .max(500)
+  .refine((v) => v === "" || isSafeHref(v), { message: "Geçersiz bağlantı adresi." });
 
 export const contactFormBodySchema = z.object({
   fullName: z.string().min(1).max(200),
@@ -45,10 +51,10 @@ export const patchSiteContactBodySchema = z
     emailPrimary: z.string().max(320).optional(),
     emailSecondary: z.string().max(320).optional(),
     hours: z.string().max(500).optional(),
-    socialLinkedin: z.string().max(500).optional(),
-    socialX: z.string().max(500).optional(),
-    socialYoutube: z.string().max(500).optional(),
-    socialInstagram: z.string().max(500).optional(),
+    socialLinkedin: optionalSafeHrefSchema.optional(),
+    socialX: optionalSafeHrefSchema.optional(),
+    socialYoutube: optionalSafeHrefSchema.optional(),
+    socialInstagram: optionalSafeHrefSchema.optional(),
   })
   .refine((o) => Object.keys(o).length > 0, {
     message: "En az bir alan gerekli.",
