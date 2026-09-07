@@ -807,6 +807,9 @@ export function useRecipeChat(): UseRecipeChatReturn {
             return;
           }
           setReplyMode("local");
+          if (streamStarted) {
+            setMessages((prev) => prev.filter((m) => m.id !== botId));
+          }
           const intro =
             err instanceof RecipeChatApiError
               ? turkishRecipeChatFallbackIntro(err.code)

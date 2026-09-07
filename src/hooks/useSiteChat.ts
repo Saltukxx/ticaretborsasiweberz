@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { getChatSessionId } from "../lib/chatSessionId";
 import { lockBodyScroll, unlockBodyScroll } from "../lib/bodyScrollLock";
 import {
@@ -105,21 +106,29 @@ export function useSiteChat() {
       const controller = new AbortController();
       abortRef.current = controller;
 
-      const user: SiteChatMessage = {
-        id: uid(),
-        role: "user",
-        content: trimmed,
-        timestamp: Date.now(),
-      };
+      let priorSnapshot: SiteChatMessage[] = [];
+      flushSync(() => {
+        setMessages((prev) => {
+          priorSnapshot = prev.slice();
+          return [
+            ...prev,
+            {
+              id: uid(),
+              role: "user" as const,
+              content: trimmed,
+              timestamp: Date.now(),
+            },
+          ];
+        });
+      });
 
-      setMessages((prev) => [...prev, user]);
       setIsTyping(true);
 
       const botId = uid();
       let streamStarted = false;
 
       try {
-        const history = toHistory([...messages, user].slice(0, -1));
+        const history = toHistory(priorSnapshot);
         const { reply } = await postSiteChat(
           trimmed,
           history,
@@ -167,15 +176,18 @@ export function useSiteChat() {
           err instanceof SiteChatApiError
             ? err.message
             : "Yanıt oluşturulamadı. Lütfen tekrar deneyin.";
-        setMessages((prev) => [
-          ...prev,
-          { id: uid(), role: "bot", content: fallback, timestamp: Date.now() },
-        ]);
+        setMessages((prev) => {
+          const base = streamStarted ? prev.filter((m) => m.id !== botId) : prev;
+          return [
+            ...base,
+            { id: uid(), role: "bot" as const, content: fallback, timestamp: Date.now() },
+          ];
+        });
       } finally {
         if (!controller.signal.aborted) setIsTyping(false);
       }
     },
-    [isTyping, messages],
+    [isTyping],
   );
 
   const toggle = useCallback(() => setOpen((v) => !v), []);
