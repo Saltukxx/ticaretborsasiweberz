@@ -213,7 +213,7 @@ export async function bulkUpsertPriceEntries(
             volumeUnit: sql`COALESCE(excluded.volume_unit, ${priceEntries.volumeUnit})`,
             transactionAmount: sql`COALESCE(excluded.transaction_amount, ${priceEntries.transactionAmount})`,
             transactionCount: sql`COALESCE(excluded.transaction_count, ${priceEntries.transactionCount})`,
-            sessionTime: sql`excluded.session_time`,
+            sessionTime: sql`COALESCE(excluded.session_time, ${priceEntries.sessionTime})`,
             createdBy: sql`excluded.created_by`,
           },
         });
