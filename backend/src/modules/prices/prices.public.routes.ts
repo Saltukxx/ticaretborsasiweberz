@@ -60,7 +60,14 @@ export async function publicPricesPlugin(fastify: FastifyInstance) {
     const slug = params.data.productSlug;
     const periodKey = query.data.period ?? "default";
     const prefix = fastify.config.redisPrefix;
-    const cacheKey = pricesHistoryCacheKey(prefix, slug, periodKey);
+    const cacheKey = pricesHistoryCacheKey(
+      prefix,
+      slug,
+      periodKey,
+      query.data.from,
+      query.data.to,
+      query.data.limit,
+    );
     const rows = await getCached(
       fastify.redis,
       cacheKey,

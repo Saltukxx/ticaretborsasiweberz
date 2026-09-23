@@ -24,8 +24,14 @@ export function pricesHistoryCacheKey(
   prefix: string,
   productSlug: string,
   period: string,
+  from?: string,
+  to?: string,
+  limit?: number,
 ): string {
-  return `${prefix}cache:prices:history:${productSlug}:${period}`;
+  const fromPart = from ?? "";
+  const toPart = to ?? "";
+  const limitPart = limit ?? "default";
+  return `${prefix}cache:prices:history:${productSlug}:${period}:${fromPart}:${toPart}:${limitPart}`;
 }
 
 export async function storeBulletinSessionSlugs(
