@@ -1,6 +1,7 @@
 import type { FastifyReply } from "fastify";
 
 export function initSseReply(reply: FastifyReply): void {
+  if (reply.raw.headersSent) return;
   reply.hijack();
   reply.raw.writeHead(200, {
     "Content-Type": "text/event-stream; charset=utf-8",
